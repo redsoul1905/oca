@@ -25,7 +25,8 @@
   canvas { background:#10141d; box-shadow:0 0 60px rgba(0,0,0,.8); touch-action:none; display:block; }
   .overlay { touch-action:pan-y; }
 
-  .overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  .overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; justify-content:safe center;
+  overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
     background:radial-gradient(ellipse at center, rgba(13,17,26,.55), rgba(6,8,12,.94)); z-index:10; text-align:center; padding:20px; }
   .hidden { display:none !important; }
 
@@ -181,7 +182,12 @@
     font-size:15px; font-weight:700; cursor:pointer; color:#1a1e26; margin:8px 10px; }
 
 /* ===== KAMPANYA ===== */
-.camplevels{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 4px 2px;}
+.camplevels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 4px 2px;}
+.camplevels .mcard{grid-column:1/-1;display:flex;align-items:center;gap:10px;background:#0e1420;border:1px solid #242e44;border-radius:10px;padding:8px 12px;margin-top:6px;text-align:left;}
+.camplevels .mcard .wem{font-size:22px;}
+.camplevels .mcard b{font:700 14px 'Rajdhani',sans-serif;letter-spacing:.08em;color:#e8ecff;display:block;}
+.camplevels .mcard p{margin:0;font:600 11px 'Rajdhani',sans-serif;color:#8a93a8;}
+.camplevels .lvrow{display:contents;}
 .camplevels .lv{background:#141a28;border:1px solid #242e44;border-radius:10px;padding:8px 4px 7px;text-align:center;font:700 13px 'Rajdhani',sans-serif;color:#cfd8ff;cursor:pointer;position:relative;}
 .camplevels .lv:hover{border-color:#e5c07b;}
 .camplevels .lv.open{border-color:#61afef;box-shadow:0 0 10px rgba(97,175,239,.25);}
@@ -215,6 +221,7 @@
     .overlay { padding:calc(12px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right))
       calc(14px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
       -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+    #howClose { position:sticky; bottom:calc(8px + env(safe-area-inset-bottom)); z-index:3; }
     h1.logo { font-size:min(12vw,42px); letter-spacing:.2em; margin-bottom:2px; }
     .tag { font-size:min(2.9vw,12px); margin-bottom:12px; letter-spacing:.1em; }
     .modes { flex-direction:column; gap:8px; width:min(430px,94vw); margin-bottom:10px; }
@@ -292,6 +299,7 @@
       </div>
     </div>
     <div class="camplevels hidden" id="campLevels"></div>
+    <div class="camplevels hidden" id="endlessLevels" style="grid-template-columns:repeat(3,1fr);"></div>
     <div class="subhead">SINIFINI SEÇ</div>
     <div class="classes" id="classList"></div>
     <button class="btn" id="startBtn">⚔ KAMPANYAYA BAŞLA</button>
@@ -680,6 +688,16 @@ let selClass = CLASSES[0];
 let best = +(localStorage.getItem('oca_best')||0);
 /* ---------- ORTAK SKOR TABLOSU: sunucuda leaderboard.php varsa o, yoksa bu cihazın yerel tablosu ---------- */
 const API='leaderboard.php';
+const GH='https://api.github.com/repos/redsoul1905/oca/contents/leaderboard.json';
+const GHTOK=''; /* ortak skora YAZMA yetkisi: fine-grained token (Contents: RW, yalnız oca repo). Boş = yalnız okuma + yerel. */
+function mergeBoards(a,b){ const m=[...(a||[]),...(b||[])].filter(e=>e&&e.name&&e.score).sort((x,y)=>y.score-x.score);
+  const seen=new Set(), out=[]; for(const e of m){ const k=(e.name||'')+'|'+(e.score||0)+'|'+(e.date||0); if(!seen.has(k)){ seen.add(k); out.push(e);} } return out; }
+async function ghGet(){ try{ const r=await fetch(GH,{headers:{Accept:'application/vnd.github.raw+json'},cache:'no-store'}); if(!r.ok) return null; const j=await r.json(); return Array.isArray(j)?j:(j&&Array.isArray(j.board)?j.board:null); }catch(e){ return null; } }
+async function ghPut(arr){ try{
+  const meta=await (await fetch(GH,{cache:'no-store'})).json();
+  const r=await fetch(GH,{method:'PUT',headers:{'Authorization':'Bearer '+GHTOK,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
+    body:JSON.stringify({message:'skor tablosu güncellendi',content:btoa(unescape(encodeURIComponent(JSON.stringify(arr)))),sha:meta.sha})});
+  return r.ok; }catch(e){ return false; } }
 let lastEntry=null;
 function localBoard(){ try{ const b=JSON.parse(localStorage.getItem('oca_board')||'[]'); return Array.isArray(b)?b:[]; }catch(e){ return []; } }
 function localAdd(e){ const b=localBoard(); b.push(e); b.sort((a,b)=>b.score-a.score); try{ localStorage.setItem('oca_board',JSON.stringify(b.slice(0,30))); }catch(err){} }
@@ -687,6 +705,8 @@ function cleanName(n){ n=String(n||'').replace(/[^\p{L}\p{N} ._\-']/gu,' ').repl
 async function fetchBoard(){
   if(location.protocol!=='file:'){
     try{ const r=await fetch(API+'?a=get',{cache:'no-store'}); if(r.ok){ const j=await r.json(); if(j&&Array.isArray(j.board)) return {src:'sunucu', board:j.board.slice(0,8)}; } }catch(e){}
+    const remote=await ghGet();
+    if(remote&&remote.length) return {src:'ortak', board:mergeBoards(remote,localBoard()).slice(0,8)};
   }
   return {src:'yerel', board:localBoard().slice(0,8)};
 }
@@ -702,7 +722,7 @@ function boardHTML(res, mine){
 async function refreshBoards(mine){
   const res=await fetchBoard();
   const bl=document.getElementById('boardList'); if(bl) bl.innerHTML=boardHTML(res,mine);
-  const bs=document.getElementById('boardSrc'); if(bs) bs.textContent = res.src==='sunucu'?'· ortak tablo — sunucudaki herkesin skorları':'· yerel tablo (bu cihaz) — sunucuda oynarsanız ortaklaşır';
+  const bs=document.getElementById('boardSrc'); if(bs) bs.textContent = res.src==='sunucu'?'· ortak tablo — sunucudaki herkesin skorları':(res.src==='ortak'?'· ortak tablo — arkadaşların skorları (GitHub)':'· yerel tablo (bu cihaz)');
   const ob=document.getElementById('overBoard'); if(ob && ob.style.display!=='none') ob.innerHTML=boardHTML(res,mine);
 }
 async function submitScore(){
@@ -714,10 +734,12 @@ async function submitScore(){
   const btn=document.getElementById('submitScore'); btn.disabled=true;
   let msg='yerel kaydedildi';
   if(location.protocol!=='file:'){
+    let sent=false;
     try{ const r=await fetch(API+'?a=add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry),cache:'no-store'});
-      const j=await r.json().catch(()=>({}));
-      msg = j.ok? 'gönderildi ✓' : 'sunucu reddetti — yerel tabloya işlendi';
-    }catch(e){ msg='sunucuya ulaşılamadı — yerel tabloya işlendi'; }
+      const j=await r.json().catch(()=>({})); sent=!!j.ok; if(sent) msg='gönderildi ✓';
+    }catch(e){}
+    if(!sent && GHTOK){ const cur=(await ghGet())||[]; if(await ghPut(mergeBoards(cur,[entry]).slice(0,25))) msg='ortak tabloya gönderildi ✓'; else msg='GitHub yazmayı reddetti — yerel tabloya işlendi'; }
+    else if(!sent){ msg='yerel tabloya işlendi — ortak tablo yalnız okunuyor'; }
   } else msg='dosyadan oynuyorsun — yerel tabloya işlendi';
   btn.textContent='🏆 SKOR '+msg;
   const ob=document.getElementById('overBoard'); ob.style.display='block';
@@ -2790,14 +2812,14 @@ CLASSES.forEach((c,i)=>{
   })(c.id, pc);
 });
 document.getElementById('startBtn').onclick=()=>{
-  if(menuMode==='camp'){ openCampLevel(Math.min(20,campProgress().unlocked)); return; }
+  if(menuMode==='camp'){ openCampLevel(Math.min(15,campProgress().unlocked)); return; }
   document.getElementById('menu').classList.add('hidden');
   document.getElementById('howto').classList.add('hidden');
-  newGame(); nextWave(); snd(523,.12,'triangle',.15); last=performance.now(); state='play';
+  newGame(); G.ew=endlessW; nextWave(); snd(523,.12,'triangle',.15); last=performance.now(); state='play';
 };
 document.getElementById('againBtn').onclick=()=>{
   document.getElementById('over').classList.add('hidden');
-  newGame(); nextWave(); last=performance.now();
+  newGame(); G.ew=endlessW; nextWave(); last=performance.now();
 };
 /* nasıl oynanır paneli */
 const howtoEl=document.getElementById('howto');
@@ -2862,9 +2884,10 @@ const CAMP = {
 };
 const WORLD_IDX={}, WORLD_BY={};
 CAMP.worlds.forEach((x,i)=>{ WORLD_IDX[x.id]=i; WORLD_BY[x.id]=x; });
-CAMP.levels.forEach((L,i)=>{ L.idx=i+1; L.world=WORLD_IDX[L.w]; L.stage=((i%4)+1); L.q=L.stage; L.cyc=3+(L.stage>=3?1:0)+(L.stage===4?1:0); });
-function lvlp(L){ return { hmul:1+L.idx*0.11, smul:1+L.idx*0.011 }; }
-function campProgress(){ try{ const p=JSON.parse(localStorage.getItem('oca_camp')||'{}'); return {unlocked:Math.max(1,Math.min(21,+(p.unlocked||1))), chapters:Array.isArray(p.chapters)?p.chapters:[]}; }catch(e){ return {unlocked:1,chapters:[]}; } }
+CAMP.levels = CAMP.levels.filter((L,i)=> i%4!==1); // her bölge başına 3 level (15 toplam)
+CAMP.levels.forEach((L,i)=>{ L.idx=i+1; L.world=WORLD_IDX[L.w]; L.stage=((i%3)+1); L.q=L.stage; L.cyc=3+(L.stage===2?1:0)+(L.stage===3?2:0); });
+function lvlp(L){ return { hmul:1+L.idx*0.16, smul:1+L.idx*0.014 }; }
+function campProgress(){ try{ const p=JSON.parse(localStorage.getItem('oca_camp')||'{}'); return {unlocked:Math.max(1,Math.min(16,+(p.unlocked||1))), chapters:Array.isArray(p.chapters)?p.chapters:[]}; }catch(e){ return {unlocked:1,chapters:[]}; } }
 function saveCamp(p){ try{ localStorage.setItem('oca_camp', JSON.stringify(p)); }catch(e){} }
 let menuMode='camp';
 function showStory(kick,chap,txt,stat,btns){
@@ -2892,24 +2915,25 @@ function renderCampLevels(){
     html+=`<div class="mcard world"><span class="wem">${w.dec}</span><div><b>${w.name}</b><p>${w.tag}</p></div></div><div class="lvrow">`;
     for(const L of CAMP.levels.filter(x=>x.w===w.id)){
       const un=L.idx<=p.unlocked, done=L.idx<p.unlocked;
-      html+=`<button class="lv${un?'':' lck'}${done?' done':''}" data-lv="${L.idx}" title="${un?('Bölüm '+L.q+': '+L.goal):'Önceki bölümü bitir'}">${done?'✔':L.q}</button>`;
+      const nxt=(L.idx===p.unlocked);
+      html+=`<button class="lv${un?'':' lock'}${done?' done':''}${nxt?' open':''}" data-lv="${L.idx}" title="${un?('Bölüm '+L.q+': '+L.goal):('🔒 Bölüm '+L.q+' kilitli — önce Bölüm '+(L.idx-1)+'ü bitir')}">${done?'✔':(nxt?'▶':(un?L.q:'🔒'))}</button>`;
     }
     html+='</div>';
   }
   box.innerHTML=html;
   box.querySelectorAll('.lv').forEach(b=>{ b.onclick=()=>{ const idx=+b.dataset.lv; if(idx>campProgress().unlocked) return; openCampLevel(idx); }; });
-  const cu=Math.min(20,p.unlocked), nl=CAMP.levels[cu-1], nw=WORLD_BY[nl.w];
-  document.getElementById('campGoal').textContent = p.unlocked>=21
+  const cu=Math.min(15,p.unlocked), nl=CAMP.levels[cu-1], nw=WORLD_BY[nl.w];
+  document.getElementById('campGoal').textContent = p.unlocked>=16
     ? 'Kampanya tamamlandı — kodikte efsanen yazılı. Bölümler yeniden oynanabilir.'
-    : `Açık: Bölüm ${cu}/20 — ${nw.name} ${nw.dec} ${cu===p.unlocked?'· sıradaki: '+nl.goal:''}`;
+    : `Açık: Bölüm ${cu}/15 — ${nw.name} ${nw.dec} ${cu===p.unlocked?'· sıradaki: '+nl.goal:''}`;
 }
 function openCampLevel(idx){
   const L=CAMP.levels[idx-1], w=WORLD_BY[L.w];
   const firstOfWorld=(L.stage===1);
-  showStory('BÖLÜM '+idx+' / 20'+(firstOfWorld?' — YENİ DÜNYA':''),
+  showStory('BÖLÜM '+idx+' / 15'+(firstOfWorld?' — YENİ DÜNYA':''),
     w.dec+' '+w.name+' · BÖLÜM '+L.q,
     (firstOfWorld&&idx>1? w.intro+'\n\n':'')+L.intro,
-    'GÖREV: '+L.goal+(idx===20?'\nSON BÖLÜM. Korukları eve götür.':''),
+    'GÖREV: '+L.goal+(idx===15?'\nSON BÖLÜM. Korukları eve götür.':''),
     [{label:'⚔ BAŞLA', fn:()=>startCampLevel(idx)},{label:'MENÜYE DÖN', alt:true, fn:()=>document.getElementById('menu').classList.remove('hidden')}]);
 }
 function startCampLevel(idx){
@@ -2931,15 +2955,15 @@ function campVictory(){ G.bossRef=null; const _bb=document.getElementById('bossb
   G.over=true; state='over';
   clearSave(); renderSaveBar();
   const p=campProgress();
-  if(L.idx>=p.unlocked && L.idx<21) p.unlocked=L.idx+1;
+  if(L.idx>=p.unlocked && L.idx<16) p.unlocked=L.idx+1;
   if(!p.chapters.some(c=>c.n===L.idx)) p.chapters.push({n:L.idx, w:L.w});
   saveCamp(p);
   const w=WORLD_BY[L.w];
-  if(L.idx===20){
+  if(L.idx===15){
     showStory('☀ FİNAL — OCAK YENİDEN YANDI', w.dec+' '+w.name+' · KAYA-ATA devrildi',
       w.fin+'\n\n'+CAMP.epilogue, 'Tüm koruklar bulundu. Kodik doldu.',
       [{label:'MENÜ — efsaneni gör', fn:()=>{ renderCampLevels(); document.getElementById('menu').classList.remove('hidden'); }},
-       {label:'SON BÖLÜMÜ TEKRAR OYNA', alt:true, fn:()=>startCampLevel(20)}]);
+       {label:'SON BÖLÜMÜ TEKRAR OYNA', alt:true, fn:()=>startCampLevel(15)}]);
   } else {
     showStory('✔ BÖLÜM TEMİZ — '+w.relic+' alındı', w.dec+' '+w.name+' · BÖLÜM '+L.q+' kapandı',
       w.fin, 'Sıradaki: Bölüm '+(L.idx+1)+' — '+CAMP.levels[L.idx].goal,
@@ -2959,8 +2983,8 @@ function campDefeat(){
     'Hikâye burada bitmiyor. '+w.name+' hâlâ seni bekliyor — ama sen de beklemeyeceksin. Kalk, hazırlan, tekrar gir.',
     [{label:'↻ TEKRAR DENE', fn:()=>startCampLevel(L.idx)},{label:'MENÜ', alt:true, fn:()=>{ renderCampLevels(); document.getElementById('menu').classList.remove('hidden'); }}]);
 }
-function campTheme(){ return (state==='play'&&G&&G.camp)? WORLD_BY[G.camp.w] : null; }
-function campWorldName(){ if(!G||!G.camp) return 'Endlos modu — bitmeyen dalgalar'; const w=WORLD_BY[G.camp.w]; return w.name+' · BÖLÜM '+G.camp.q+' — '+w.tag; }
+function campTheme(){ if(state!=='play'||!G) return null; if(G.camp) return WORLD_BY[G.camp.w]; return (G.ew&&G.ew!=='cave'&&WORLD_BY[G.ew])? WORLD_BY[G.ew] : null; }
+function campWorldName(){ if(!G||!G.camp) return (G&&G.ew&&WORLD_BY[G.ew])? WORLD_BY[G.ew].dec+' '+WORLD_BY[G.ew].name+' · SONSUZ' : '🕳️ MAĞARA · SONSUZ modu — bitmeyen dalgalar'; const w=WORLD_BY[G.camp.w]; return w.name+' · BÖLÜM '+G.camp.q+' — '+w.tag; }
 function renderCodex(){
   const p=campProgress(), body=document.getElementById('codexBody');
   let html='';
@@ -2971,20 +2995,27 @@ function renderCodex(){
       const L=CAMP.levels[c.n-1], w=WORLD_BY[c.w];
       if(L.stage===1 && !seen.has('i'+c.w)){ seen.add('i'+c.w); html+=`<div class="cx open"><h4>${w.dec} ${w.name} — dünya girişi</h4><p>${w.intro}</p></div>`; }
       html+=`<div class="cx open"><h4>BÖLÜM ${c.n} — ${w.name} ${w.dec}</h4><p>${L.intro}</p><p style="color:#7ee787">✔ ${w.relic} alındı — ${L.goal}</p></div>`;
-      if(L.stage===4 && !seen.has('f'+c.w)){ seen.add('f'+c.w); html+=`<div class="cx open"><h4>${w.dec} ${w.name} — kapanış</h4><p>${w.fin}</p></div>`; }
+      if(L.stage===3 && !seen.has('f'+c.w)){ seen.add('f'+c.w); html+=`<div class="cx open"><h4>${w.dec} ${w.name} — kapanış</h4><p>${w.fin}</p></div>`; }
     }
-    if(p.unlocked>=21) html+=`<div class="cx open"><h4>☀ FİNAL</h4><p>${CAMP.epilogue}</p></div>`;
+    if(p.unlocked>=16) html+=`<div class="cx open"><h4>☀ FİNAL</h4><p>${CAMP.epilogue}</p></div>`;
   }
   body.innerHTML=html;
 }
 document.getElementById('codexBtn').onclick=()=>{ renderCodex(); document.getElementById('codex').classList.remove('hidden'); snd(440,.05,'sine',.1); };
 document.getElementById('codexClose').onclick=()=>{ document.getElementById('codex').classList.add('hidden'); };
-document.getElementById('modeCampaign').onclick=()=>{ menuMode='camp'; document.getElementById('modeCampaign').classList.add('sel'); document.getElementById('modeEndless').classList.remove('sel'); document.getElementById('startBtn').textContent='⚔ BÖLÜM SEÇ — KAMPANYA'; document.getElementById('campLevels').classList.remove('hidden'); snd(440,.05,'sine',.1); };
-document.getElementById('modeEndless').onclick=()=>{ menuMode='endless'; document.getElementById('modeEndless').classList.add('sel'); document.getElementById('modeCampaign').classList.remove('sel'); document.getElementById('startBtn').textContent='♾ SONSUZ MOD — MAĞARAYA GİR'; document.getElementById('campLevels').classList.add('hidden'); snd(440,.05,'sine',.1); };
+document.getElementById('modeCampaign').onclick=()=>{ menuMode='camp'; document.getElementById('modeCampaign').classList.add('sel'); document.getElementById('modeEndless').classList.remove('sel'); document.getElementById('startBtn').textContent='⚔ BÖLÜM SEÇ — KAMPANYA'; document.getElementById('campLevels').classList.remove('hidden'); document.getElementById('endlessLevels').classList.add('hidden'); snd(440,.05,'sine',.1); };
+document.getElementById('modeEndless').onclick=()=>{ menuMode='endless'; document.getElementById('modeEndless').classList.add('sel'); document.getElementById('modeCampaign').classList.remove('sel'); document.getElementById('startBtn').textContent='♾ SONSUZ MOD — HARİTAYI SEÇ, GİR'; document.getElementById('campLevels').classList.add('hidden'); renderEndlessLevels(); document.getElementById('endlessLevels').classList.remove('hidden'); snd(440,.05,'sine',.1); };
+/* sonsuz mod harita seçimi (kampanyada harita sabittir — bölge teması) */
+let endlessW=(()=>{ try{ return localStorage.getItem('oca_ew')||'cave'; }catch(e){ return 'cave'; } })();
+const ENDLESS_W=[{id:'cave',name:'MAĞARA',dec:'🕳️',tag:'klasik derinlik'},...CAMP.worlds.map(w=>({id:w.id,name:w.name,dec:w.dec,tag:w.tag}))];
+function renderEndlessLevels(){ const box=document.getElementById('endlessLevels'); if(!box) return;
+  box.innerHTML=ENDLESS_W.map(w=>`<button class="lv${w.id===endlessW?' open':''}" data-ew="${w.id}" title="${w.tag}">${w.dec}<span class="w">${w.name}</span></button>`).join('');
+  box.querySelectorAll('[data-ew]').forEach(b=>b.onclick=()=>{ endlessW=b.dataset.ew; try{localStorage.setItem('oca_ew',endlessW);}catch(e){} renderEndlessLevels(); snd(520,.05,'sine',.1); }); }
+renderEndlessLevels();
 document.getElementById('storyBtn').onclick=()=>{
   showStory('HİKÂYE — BÖLÜM 0 · PROLOG', '⛰ OCAĞIN SON BEKÇİSİ · prolog',
     'Ocağın külü rüzgâra karıştı. Altı koruk çalındı; son bekçi olarak sen kaldın.\nÇölde başla, buzulda ısın, ormanda kök sal, harabelerde yas tut, yanardağda hesaplaş.\nHer bölüm bir sayfa: hikâye sen ilerledikçe buraya kazınacak.',
-    'Kampanya: 5 dünya · 20 bölüm · her bölümde yeni yaratıklar.',
+    'Kampanya: 5 dünya · 15 bölüm · her bölümde yeni yaratıklar.',
     [{label:'KAMPANYEYE BAŞLA', fn:()=>{ document.getElementById('modeCampaign').click(); }},{label:'KAPAT', alt:true}]);
 };
 /* ilk kullanıcı hareketinde ses motorunu uyandır (iOS/Safari şartı) */
@@ -3269,18 +3300,18 @@ function nextWaveCamp(){
     return;
   }
   const base=L.roster;
-  const n=Math.max(4, Math.round(base.length*(0.75+0.28*c+0.03*diff)));
+  const n=Math.max(4, Math.round(base.length*(0.85+0.32*c+0.05*diff)));
   const q=[]; for(let i=0;i<n;i++) q.push(base[i%base.length]);
   G.spawnQueue=q;
   floatText(W/2,84,'— DALGA '+(c+1)+'/'+cyc+' —','#8a93a8',16);
 }
 function campSpawnBoss(){
   const L=G.camp, w=WORLD_BY[L.w], bt=L.boss||w.boss||'boss', T=ETYPES[bt];
-  const hp=Math.round(T.hp*(0.65+0.035*L.idx));
+  const hp=Math.round(T.hp*(0.62+0.055*L.idx));
   const e={ type:bt, x:rand(W*0.3,W*0.7), y:rand(90,170), r:T.r,
     hp:hp, maxhp:hp,
-    spd:T.spd*Math.min(1.25,1+L.idx*0.015),
-    dmg:T.dmg*(1+L.idx*0.018),
+    spd:T.spd*Math.min(1.32,1+L.idx*0.02),
+    dmg:T.dmg*(1+L.idx*0.026),
     col:T.col, em:null,
     kx:0,ky:0,hitT:0,slowT:0,burnT:0,burnDps:0,
     atkCd:rand(.5,1.4), castT:rand(1,2.5), dashT:rand(1.5,3),

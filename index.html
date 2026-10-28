@@ -727,7 +727,8 @@ async function submitScore(){
     let sent=false;
     try{ const r=await fetch(API,{method:'POST',mode:'cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(entry),cache:'no-store'});
       const j=await r.json().catch(()=>({})); sent=!!j.ok;
-    }catch(e){}
+    if(sent){ try{ const b=localBoard().filter(e=>!(e.name===entry.name&&e.score===entry.score)); localStorage.setItem('oca_board',JSON.stringify(b)); }catch(e2){} }
+  }catch(e){}
     msg = sent ? 'gönderildi ✓' : 'yerel tabloya işlendi';
   } else msg='dosyadan oynuyorsun — yerel tabloya işlendi';
   btn.textContent='🏆 SKOR '+msg;

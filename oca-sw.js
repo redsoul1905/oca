@@ -1,7 +1,7 @@
 /* OCA — Yeraltı Arenası service worker
    Amac: telefonda "Ana Ekrana Ekle" ile acilan oyun internet olmadan da calissin.
    Sürüm degistirdigimizde CACHE adini artirin (oca-v2 gibi). */
-const CACHE = 'oca-v3';
+const CACHE = 'oca-v4';
 const CORE = ['./', './index.html', './manifest.webmanifest',
               './apple-touch-icon.png', './icon-192.png', './icon-512.png',
               './icon-maskable-512.png', './favicon.svg', './favicon.png'];

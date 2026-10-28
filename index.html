@@ -686,27 +686,17 @@ let P = null;
 let state = 'menu';   // menu | play | cards | shop | over | pause
 let selClass = CLASSES[0];
 let best = +(localStorage.getItem('oca_best')||0);
-/* ---------- ORTAK SKOR TABLOSU: sunucuda leaderboard.php varsa o, yoksa bu cihazın yerel tablosu ---------- */
-const API='leaderboard.php';
-const GH='https://api.github.com/repos/redsoul1905/oca/contents/leaderboard.json';
-const GHTOK=''; /* ortak skora YAZMA yetkisi: fine-grained token (Contents: RW, yalnız oca repo). Boş = yalnız okuma + yerel. */
+/* ---------- ORTAK SKOR TABLOSU: Google Apps Script uç noktası (token'sız) + yerel yedek ---------- */
+const API='https://script.google.com/macros/s/AKfycbyn8CyP6nHu_DmNQtS0yI6x5B4yQ3HQAhklFxqyEvJT8pFacOc33EyT0oMIft3zD-LREQ/exec';
 function mergeBoards(a,b){ const m=[...(a||[]),...(b||[])].filter(e=>e&&e.name&&e.score).sort((x,y)=>y.score-x.score);
   const seen=new Set(), out=[]; for(const e of m){ const k=(e.name||'')+'|'+(e.score||0)+'|'+(e.date||0); if(!seen.has(k)){ seen.add(k); out.push(e);} } return out; }
-async function ghGet(){ try{ const r=await fetch(GH,{headers:{Accept:'application/vnd.github.raw+json'},cache:'no-store'}); if(!r.ok) return null; const j=await r.json(); return Array.isArray(j)?j:(j&&Array.isArray(j.board)?j.board:null); }catch(e){ return null; } }
-async function ghPut(arr){ try{
-  const meta=await (await fetch(GH,{cache:'no-store'})).json();
-  const r=await fetch(GH,{method:'PUT',headers:{'Authorization':'Bearer '+GHTOK,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
-    body:JSON.stringify({message:'skor tablosu güncellendi',content:btoa(unescape(encodeURIComponent(JSON.stringify(arr)))),sha:meta.sha})});
-  return r.ok; }catch(e){ return false; } }
 let lastEntry=null;
 function localBoard(){ try{ const b=JSON.parse(localStorage.getItem('oca_board')||'[]'); return Array.isArray(b)?b:[]; }catch(e){ return []; } }
 function localAdd(e){ const b=localBoard(); b.push(e); b.sort((a,b)=>b.score-a.score); try{ localStorage.setItem('oca_board',JSON.stringify(b.slice(0,30))); }catch(err){} }
 function cleanName(n){ n=String(n||'').replace(/[^\p{L}\p{N} ._\-']/gu,' ').replace(/\s+/g,' ').trim(); return n.slice(0,14)||'adsız'; }
 async function fetchBoard(){
   if(location.protocol!=='file:'){
-    try{ const r=await fetch(API+'?a=get',{cache:'no-store'}); if(r.ok){ const j=await r.json(); if(j&&Array.isArray(j.board)) return {src:'sunucu', board:j.board.slice(0,8)}; } }catch(e){}
-    const remote=await ghGet();
-    if(remote&&remote.length) return {src:'ortak', board:mergeBoards(remote,localBoard()).slice(0,8)};
+    try{ const r=await fetch(API,{cache:'no-store'}); if(r.ok){ const j=await r.json(); if(Array.isArray(j)) return {src:'ortak', board:mergeBoards(j,localBoard()).slice(0,8)}; } }catch(e){}
   }
   return {src:'yerel', board:localBoard().slice(0,8)};
 }
@@ -722,7 +712,7 @@ function boardHTML(res, mine){
 async function refreshBoards(mine){
   const res=await fetchBoard();
   const bl=document.getElementById('boardList'); if(bl) bl.innerHTML=boardHTML(res,mine);
-  const bs=document.getElementById('boardSrc'); if(bs) bs.textContent = res.src==='sunucu'?'· ortak tablo — sunucudaki herkesin skorları':(res.src==='ortak'?'· ortak tablo — arkadaşların skorları (GitHub)':'· yerel tablo (bu cihaz)');
+  const bs=document.getElementById('boardSrc'); if(bs) bs.textContent = res.src==='ortak'?'· ortak tablo — arkadaşların skorları':'· yerel tablo (bu cihaz)';
   const ob=document.getElementById('overBoard'); if(ob && ob.style.display!=='none') ob.innerHTML=boardHTML(res,mine);
 }
 async function submitScore(){
@@ -735,11 +725,10 @@ async function submitScore(){
   let msg='yerel kaydedildi';
   if(location.protocol!=='file:'){
     let sent=false;
-    try{ const r=await fetch(API+'?a=add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry),cache:'no-store'});
-      const j=await r.json().catch(()=>({})); sent=!!j.ok; if(sent) msg='gönderildi ✓';
+    try{ const r=await fetch(API,{method:'POST',mode:'cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(entry),cache:'no-store'});
+      const j=await r.json().catch(()=>({})); sent=!!j.ok;
     }catch(e){}
-    if(!sent && GHTOK){ const cur=(await ghGet())||[]; if(await ghPut(mergeBoards(cur,[entry]).slice(0,25))) msg='ortak tabloya gönderildi ✓'; else msg='GitHub yazmayı reddetti — yerel tabloya işlendi'; }
-    else if(!sent){ msg='yerel tabloya işlendi — ortak tablo yalnız okunuyor'; }
+    msg = sent ? 'gönderildi ✓' : 'yerel tabloya işlendi';
   } else msg='dosyadan oynuyorsun — yerel tabloya işlendi';
   btn.textContent='🏆 SKOR '+msg;
   const ob=document.getElementById('overBoard'); ob.style.display='block';

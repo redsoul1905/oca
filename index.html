@@ -1023,7 +1023,7 @@ function readSave(){
 function saveGame(){
   if (!P || !G || G.over) return false;
   try {
-    if (placing) cancelPlace();            /* yerleştirme yarım haldeyse kaynaklar iade edilir */
+    if (placing) return false;            /* Platzierung läuft: nicht speichern — alter Save bleibt gültig, keine halbe Zahlung */
     const Pd = Object.assign({}, P);
     Pd.clsId = (P.cls && P.cls.id) ? P.cls.id : 'savasci';
     delete Pd.cls;                          /* sınıf nesnesi sonradan CLASSES'tan yeniden bağlanır */

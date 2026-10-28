@@ -689,7 +689,7 @@ let best = +(localStorage.getItem('oca_best')||0);
 /* ---------- ORTAK SKOR TABLOSU: sunucuda leaderboard.php varsa o, yoksa bu cihazın yerel tablosu ---------- */
 const API='leaderboard.php';
 const GH='https://api.github.com/repos/redsoul1905/oca/contents/leaderboard.json';
-const GHTOK='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'; /* ortak skora YAZMA yetkisi: fine-grained token (Contents: RW, yalnız oca repo). Boş = yalnız okuma + yerel. */
+const GHTOK=''; /* ortak skora YAZMA yetkisi: fine-grained token (Contents: RW, yalnız oca repo). Boş = yalnız okuma + yerel. */
 function mergeBoards(a,b){ const m=[...(a||[]),...(b||[])].filter(e=>e&&e.name&&e.score).sort((x,y)=>y.score-x.score);
   const seen=new Set(), out=[]; for(const e of m){ const k=(e.name||'')+'|'+(e.score||0)+'|'+(e.date||0); if(!seen.has(k)){ seen.add(k); out.push(e);} } return out; }
 async function ghGet(){ try{ const r=await fetch(GH,{headers:{Accept:'application/vnd.github.raw+json'},cache:'no-store'}); if(!r.ok) return null; const j=await r.json(); return Array.isArray(j)?j:(j&&Array.isArray(j.board)?j.board:null); }catch(e){ return null; } }

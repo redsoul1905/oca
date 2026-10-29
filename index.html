@@ -2014,8 +2014,8 @@ function gameOver(){
   document.getElementById('overStats').innerHTML=
     `${nb?'<div class="newbest">★ YENİ REKOR ★</div>':''}`+
     `Seviye <b>${P.lvl}</b> · Dalga <b>${G.wave}</b> · Öldürme <b>${P.kills}</b> · Kaynak <b>${P.collected}</b><br>`+
-    `Süre <b>${Math.floor(P.time/60)}dk ${('0'+Math.floor(P.time%60)).slice(-2)}sn</b> — Skor <b>${sc}</b><br>Rekor: <b>${best}</b>+
-    (()=>{ const HN={slime:'Slime',bat:'Fledermaus',golem:'Golem',mage:'Magier',wraith:'Wraith',brute:'Brute',boss:'Boss',fire:'Feuerpfütze',ice:'Eiszone',sting:'Stachel',nova:'Druckwelle',arrow:'Projektil'}; const h=G.lastHit; const k=h&&h.type?((ETYPES[h.type]&&ETYPES[h.type].em?ETYPES[h.type].em+' ':'')+h.type):h; return h?('<br>☠ Erlegt von: <b>'+L(k)+'</b>'):''; })();`;
+    `Süre <b>${Math.floor(P.time/60)}dk ${('0'+Math.floor(P.time%60)).slice(-2)}sn</b> — Skor <b>${sc}</b><br>Rekor: <b>${best}</b>`+
+    (()=>{ const HN={slime:'Slime',bat:'Bat',golem:'Golem',mage:'Mage',wraith:'Wraith',brute:'Brute',boss:'Boss',fire:'Fire puddle',ice:'Ice zone',sting:'Sting',nova:'Shockwave',arrow:'Projectile'}; const h=G.lastHit; const k=h&&h.type?((ETYPES[h.type]&&ETYPES[h.type].em?ETYPES[h.type].em+' ':'')+h.type):h; return h?('<br>☠ Erlegt von: <b>'+k+'</b>'):''; })();
   document.getElementById('over').classList.remove('hidden');
   lastEntry={score:sc, wave:G.wave, kills:P.kills, lvl:P.lvl, time:Math.round(P.time)};
   /* kül madalyonu + sonsuz rekoru + başarım */

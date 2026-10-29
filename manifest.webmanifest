@@ -1,7 +1,7 @@
 {
-  "name": "OCA — Yeraltı Arenası",
-  "short_name": "OCA",
-  "description": "Tek dosyalık action-RPG. Telefonda (iOS/Android) ve bilgisayarda tarayıcıda oynanır, kaydet/yükle destekli.",
+  "name": "OCARA — Last Flame Standing",
+  "short_name": "OCARA",
+  "description": "OCARA: tek dosyalık action-RPG. Telefonda (iOS/Android) ve bilgisayarda tarayıcıda oynanır, kaydet/yükle destekli.",
   "lang": "tr",
   "dir": "ltr",
   "start_url": "./index.html",

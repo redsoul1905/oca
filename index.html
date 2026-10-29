@@ -2018,6 +2018,8 @@ function gameOver(){
     (()=>{ const HN={slime:'Slime',bat:'Bat',golem:'Golem',mage:'Mage',wraith:'Wraith',brute:'Brute',boss:'Boss',fire:'Fire puddle',ice:'Ice zone',sting:'Sting',nova:'Shockwave',arrow:'Projectile'}; const h=G.lastHit; const k=h&&h.type?((ETYPES[h.type]&&ETYPES[h.type].em?ETYPES[h.type].em+' ':'')+h.type):h; return h?('<br>☠ Erlegt von: <b>'+k+'</b>'):''; })();
   document.getElementById('over').classList.remove('hidden');
   lastEntry={score:sc, wave:G.wave, kills:P.kills, lvl:P.lvl, time:Math.round(P.time)};
+  lastRunText='OCARA — Last Flame Standing — '+L('Seviye')+' '+P.lvl+' · '+L('DALGA')+' '+G.wave+' · '+sc+' '+L('puan')+' 🏔';
+  { const sh=document.getElementById('shareBtn'); if(sh){ sh.textContent='📤 '+L('ARKADAŞLARINA GÖNDER'); sh.dataset.txt=lastRunText; } }
   /* kül madalyonu + sonsuz rekoru + başarım */
   try{
     const ag=ashGain(); ashSet(ashGet()+ag);

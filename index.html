@@ -1566,6 +1566,7 @@ function step(dt){
   if(P.chillT>0) P.chillT=Math.max(0,P.chillT-dt);
   if(P.poisonT>0){ P.poisonT-=dt; P.hp-=P.poisonDps*dt;
     if(Math.random()<dt*6){ burst(P.x+rand(-8,8),P.y+rand(-8,8),1,'#9ae87f'); floatText(P.x,P.y-30,'☠ -'+Math.round(P.poisonDps),'#9ae87f',10); } }
+  P.atkT=Math.max(0,P.atkT-dt);
   P.invuln=Math.max(0,P.invuln-dt);
   if((mouse.down||holdAtk||(autoAtk&&nearEnemy())) && P.atkT<=0) attack();
   if(IS_TOUCH && G.t-(G.lastUI||0) > 0.3){ G.lastUI=G.t; syncTouchUI(); }

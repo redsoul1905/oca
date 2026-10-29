@@ -3182,6 +3182,7 @@ document.getElementById('startBtn').onclick=()=>{
   document.getElementById('menu').classList.add('hidden');
   document.getElementById('howto').classList.add('hidden');
   newGame(); G.ew=endlessW;
+  if(menuMode==='daily'){ G.dseed=dailyKey(); dRNG=mulberry32(fnv1a(G.dseed)); }
   if(menuMode!=='camp') showModBanner();
   nextWave(); snd(523,.12,'triangle',.15); last=performance.now(); state='play';
 };

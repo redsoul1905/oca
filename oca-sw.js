@@ -1,10 +1,11 @@
 /* OCARA — Last Flame Standing service worker
    Amac: telefonda "Ana Ekrana Ekle" ile acilan oyun internet olmadan da calissin.
    Sürüm degistirdigimizde CACHE adini artirin (oca-v2 gibi). */
-const CACHE = 'oca-v13';
+const CACHE = 'oca-v14';
 const CORE = ['./', './index.html', './manifest.webmanifest',
               './apple-touch-icon.png', './icon-192.png', './icon-512.png',
-              './icon-maskable-512.png', './favicon.svg', './favicon.png'];
+              './icon-maskable-512.png', './favicon.svg', './favicon.png',
+              './og-image.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));

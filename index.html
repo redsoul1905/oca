@@ -860,7 +860,6 @@ document.getElementById('shareBtn').onclick=async()=>{ const txt=(document.getEl
   try{ if(navigator.share){ await navigator.share({title:'OCARA',text:txt}); return; } }catch(e){ return; }
   try{ await navigator.clipboard.writeText(txt); const b=document.getElementById('shareBtn'); const o=b.textContent; b.textContent='📋 '+L('PANAYA KOPYALANDI'); setTimeout(()=>{b.textContent=o;},1600); }catch(e){}
 };
-document.addEventListener('visibilitychange',()=>{ if(document.hidden && state==='play'){ try{ togglePause(); }catch(e){} } });
 document.getElementById('boardDaily').onclick=()=>{ menuDailyView=!menuDailyView;
   document.getElementById('boardDaily').textContent=menuDailyView?('📅 '+dailyKey()+' TABLOSU'):'📅 GÜNÜN TABLOSU';
   refreshBoards(localStorage.getItem('oca_name')||''); };

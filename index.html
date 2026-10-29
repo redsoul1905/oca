@@ -3175,18 +3175,19 @@ CLASSES.forEach((c,i)=>{
     requestAnimationFrame(frame);
   })(c.id, pc);
 });
+function showModBanner(){ if(MODW!==1) return; if(document.querySelector('[data-modbanner]')) return; const b=document.createElement('div'); b.dataset.modbanner='1'; b.textContent='🔥 HAFTMODIFIKATOR: FIEBER — Gegner +15% Leben'; b.style.cssText='position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:70;background:rgba(20,16,10,.85);color:#f2d98c;padding:8px 14px;border-radius:10px;font-size:13px;pointer-events:none'; document.body.appendChild(b); setTimeout(()=>b.remove(),4000); }
 document.getElementById('startBtn').onclick=()=>{
   if(menuMode==='camp'){ openCampLevel(Math.min(15,campProgress().unlocked)); return; }
   document.getElementById('menu').classList.add('hidden');
   document.getElementById('howto').classList.add('hidden');
   newGame(); G.ew=endlessW;
-  if(menuMode!=='camp' && MODW===1 && state!=='play'){ const b=document.createElement('div'); b.textContent='🔥 HAFTMODIFIKATOR: FIEBER — Gegner +15% Leben'; b.style.cssText='position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:70;background:rgba(20,16,10,.85);color:#f2d98c;padding:8px 14px;border-radius:10px;font-size:13px;pointer-events:none'; document.body.appendChild(b); setTimeout(()=>b.remove(),4000); }
+  if(menuMode!=='camp') showModBanner();
   nextWave(); snd(523,.12,'triangle',.15); last=performance.now(); state='play';
 };
 let overWasDaily=false;
 document.getElementById('againBtn').onclick=()=>{
   document.getElementById('over').classList.add('hidden');
-  newGame(); G.ew=endlessW;
+  newGame(); G.ew=endlessW; showModBanner();
   if((typeof G!=='undefined')&&overWasDaily){ G.dseed=dailyKey(); dRNG=mulberry32(fnv1a(G.dseed)); }
   nextWave(); last=performance.now();
 };

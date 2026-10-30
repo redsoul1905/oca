@@ -556,7 +556,7 @@ function orb(x,z,val){var m=new THREE.Mesh(new THREE.SphereGeometry(.18,250,40),
 function floater(x,z,txt,c){var cc=document.createElement('canvas');cc.width=128;cc.height=48;var g=cc.getContext('2d');
  g.font='bold 30px sans-serif';g.fillStyle=c;g.textAlign='center';g.fillText(txt,64,34);
  var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cc),transparent:true,depthWrite:false}));
- sp.position.set(x,2.4,z);sp.userData={life:.85};scene.add(sp);G.parts.push(sp)}
+ sp.scale.set(1.9,.72,1);sp.position.set(x,2.4,z);sp.userData={life:1.1,rise:1};scene.add(sp);G.parts.push(sp)}
 function spark(x,y,z){var m=new THREE.Sprite(new THREE.SpriteMaterial({map:FLAME,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:.9,color:0xffcf8a}));
  m.position.set(x,y,z);m.scale.setScalar(.5);m.userData={spark:true,life:.18};scene.add(m);G.parts.push(m)}
 function eshoot(x,y,z,dx,dz,spd,dmg){var m=new THREE.Group();
@@ -581,7 +581,7 @@ function swing(){P.grp.userData.swingT=.28;var fx=Math.sin(P.face),fz=Math.cos(P
  for(var i2=0;i2<G.enemies.length;i2++){var e3=G.enemies[i2],dd=Math.hypot(e3.x-P.x,e3.z-P.z);
  if(dd<P.range+e3.r){var dot=(fx*(e3.x-P.x)+fz*(e3.z-P.z))/Math.max(.001,dd);if(dot>.35){hitEnemy(e3,P.atk);e3.x+=fx*.5;e3.z+=fz*.5;e3.mesh.position.set(e3.x,0,e3.z)}}}
  puff(P.x+fx*1.4,1.2,P.z+fz*1.4,0xffc060,6);
- G.fx=G.fx||[];var arc=new THREE.Mesh(new THREE.CircleGeometry(P.range*.8,.9+P.range*40,-.95,1.9),new THREE.MeshBasicMaterial({color:0xffb35a,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));arc.rotation.x=-Math.PI/2;arc.rotation.y=P.face-Math.PI/2;arc.position.set(P.x+Math.sin(P.face)*.6,.45,P.z+Math.cos(P.face)*.6);arc.scale.setScalar(.35);G.fx.push({mesh:arc,t:0,life:.26})}
+ G.fx=G.fx||[];var arc=new THREE.Mesh(new THREE.CircleGeometry(P.range*.8,.9+P.range*40,-.95,1.9),new THREE.MeshBasicMaterial({color:0xffb35a,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));arc.rotation.x=-Math.PI/2;arc.rotation.y=P.face-Math.PI/2;arc.position.set(P.x+Math.sin(P.face)*.6,.45,P.z+Math.cos(P.face)*.6);arc.scale.setScalar(.35);G.fx.push({mesh:arc,t:0,life:.34}) /* v50b: Schwungbogen linger sichtbar */}
 function hitEnemy(e,dmg){e.hp-=dmg;e.mesh.userData.hitFlash=.14;floater(e.x,e.z,'-'+Math.round(dmg),e.hp<=0?'#ff8a5a':'#fff2c0');
  if(P.vamp>0){P.hp=Math.min(P.maxhp,P.hp+dmg*P.vamp)}
  if(e.hp<=0)killEnemy(e)}
@@ -644,7 +644,7 @@ function step(dt){
  if(P.moved)P.walkA+=dt*9;else P.walkA*=.9;
  P.atkT=Math.max(0,P.atkT-dt);
  if(P.atkT<=0&&mouseDown){if(CLASSES[P.cls].melee){swing();P.atkT=P.aspd}else{shoot();P.atkT=P.aspd}}
- if(G.fx)for(var fi=G.fx.length-1;fi>=0;fi--){var fxA=G.fx[fi];fxA.t+=dt;var kk=fxA.t/fxA.life;if(kk>=1){scene.remove(fxA.mesh);G.fx.splice(fi,1);continue}fxA.mesh.scale.setScalar(.35+kk*.7);fxA.mesh.material.opacity=.85*(1-kk);fxA.mesh.material.color.setHex(kk<.12?0xffffff:0xff9440)}
+ if(G.fx)for(var fi=G.fx.length-1;fi>=0;fi--){var fxA=G.fx[fi];fxA.t+=dt;var kk=fxA.t/fxA.life;if(kk>=1){scene.remove(fxA.mesh);G.fx.splice(fi,1);continue}fxA.mesh.scale.setScalar(.35+kk*.7);fxA.mesh.material.opacity=.95*(1-kk);fxA.mesh.material.color.setHex(kk<.12?0xffffff:0xff9440)}
  if((keys.Space)&&P.dashCd<=0&&P.moved){P.dashCd=2.2;P.invuln=.4;P.dashT=.22;P.dashX=mx;P.dashZ=mz}
  P.dashCd=Math.max(0,P.dashCd-dt);P.invuln=Math.max(0,P.invuln-dt);P.slowT=Math.max(0,(P.slowT||0)-dt);
  if(P.dashT>0){P.dashT-=dt;P.x+=P.dashX*26*dt;P.z+=P.dashZ*26*dt;if(rnd()<.5)puff(P.x,1,P.z,0x9ad8ff,1);resolveOb(P,P.r)}
@@ -693,7 +693,7 @@ function step(dt){
  /* parcaciklar */
  for(var p=G.parts.length-1;p>=0;p--){var pm=G.parts[p];pm.userData.life-=dt;
   if(pm.userData.spark){pm.scale.multiplyScalar(1.08)}
-  else{pm.position.y+=pm.userData.vy*dt;pm.scale.multiplyScalar(.94)}
+  else{pm.position.y+=(pm.userData.vy||1.8)*dt;if(!pm.userData.rise)pm.scale.multiplyScalar(.94)} /* v50b: floats ohne vy bekamen NaN-y (hingen unsichtbar); Schadenszahlen steigen jetzt sichtbar auf */
   if(pm.material&&pm.material.opacity!==undefined)pm.material.opacity=Math.max(0,pm.material.opacity-dt*1.8);
   if(pm.userData.life<=0){scene.remove(pm);G.parts.splice(p,1)}}
  /* dalga akisi */

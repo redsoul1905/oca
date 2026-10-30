@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>OCARA 3D — Last Flame Standing</title>
+<meta name="theme-color" content="#0d1017">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./favicon.svg">
+<style>
+  :root{--bg:#0d1017;--fg:#e8e6df;--acc:#ff7a39;--dim:#8b93a3;--hp:#e5484d;--xp:#46a5ff}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
+    font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-user-select:none;user-select:none}
+  canvas{display:block}
+  .ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(10,12,17,.82);backdrop-filter:blur(4px);z-index:10;text-align:center;padding:20px}
+  .ov h1{font-size:clamp(30px,7vw,56px);letter-spacing:.06em;color:var(--acc);text-shadow:0 0 30px rgba(255,122,57,.45)}
+  .ov h2{font-size:clamp(15px,3vw,21px);color:var(--dim);font-weight:500;margin-top:6px}
+  .ov .btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:26px}
+  .b{background:#1b2130;border:1px solid #2c3547;color:var(--fg);padding:12px 22px;border-radius:10px;
+    font-size:16px;cursor:pointer;transition:.15s}
+  .b:hover{border-color:var(--acc);color:var(--acc)}
+  .b.pri{background:var(--acc);border-color:var(--acc);color:#14100c;font-weight:700}
+  .b.pri:hover{filter:brightness(1.15);color:#14100c}
+  .note{color:var(--dim);font-size:13px;margin-top:22px;line-height:1.7}
+  .lk{color:var(--dim);font-size:13px;margin-top:14px;text-decoration:none;border-bottom:1px dashed #445}
+  .lk:hover{color:var(--acc);border-color:var(--acc)}
+  #hud{position:fixed;top:0;left:0;right:0;display:none;gap:16px;align-items:center;
+    padding:10px 14px;z-index:5;pointer-events:none;font-size:14px}
+  #hpwrap{width:190px;height:14px;background:#22283a;border-radius:7px;overflow:hidden;border:1px solid #323c52}
+  #hpfill{height:100%;background:linear-gradient(90deg,var(--hp),#ff8080);width:100%;transition:width .12s}
+  #bosswrap{position:fixed;top:44px;left:50%;transform:translateX(-50%);width:min(70vw,420px);height:12px;
+    background:#22283a;border-radius:6px;overflow:hidden;display:none;z-index:5;border:1px solid #4a3b2c}
+  #bossfill{height:100%;background:linear-gradient(90deg,#ffb020,var(--acc));width:100%;transition:width .15s}
+  #bosslbl{position:fixed;top:60px;left:50%;transform:translateX(-50%);color:#ffb020;font-size:12px;
+    letter-spacing:.14em;z-index:5;display:none}
+  .st{color:var(--dim)}.st b{color:var(--fg)}
+  #dashI{color:var(--acc)}
+  #cards{display:none}
+  #cardrow{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:24px}
+  .card{width:180px;background:#161c29;border:1px solid #2c3547;border-radius:14px;padding:18px 14px;
+    cursor:pointer;transition:.15s;text-align:center}
+  .card:hover{border-color:var(--acc);transform:translateY(-4px);box-shadow:0 10px 26px rgba(255,122,57,.16)}
+  .card .ic{font-size:30px}
+  .card .t{color:var(--acc);font-weight:700;margin:8px 0 6px;font-size:15px}
+  .card .d{color:var(--dim);font-size:13px;line-height:1.5}
+  #over h1{color:var(--hp)}
+  #stats{color:var(--dim);margin-top:16px;line-height:2;font-size:15px}
+  #stats b{color:var(--fg)}
+  #pause{display:none;background:rgba(10,12,17,.6)}
+</style>
+</head>
+<body>
+<div id="hud">
+  <div id="hpwrap"><div id="hpfill"></div></div>
+  <span class="st" id="waveT"></span>
+  <span class="st" id="goldT"></span>
+  <span class="st" id="killT"></span>
+  <span class="st" id="dashI"></span>
+</div>
+<div id="bosswrap"><div id="bossfill"></div></div>
+<div id="bosslbl"></div>
+
+<div class="ov" id="menu">
+  <h1>OCARA 3D</h1>
+  <h2 id="subT"></h2>
+  <div class="btns">
+    <button class="b pri" id="startBtn"></button>
+    <button class="b" id="langBtn"></button>
+  </div>
+  <div class="note" id="ctrlNote"></div>
+  <a class="lk" href="./" id="back2d"></a>
+</div>
+
+<div class="ov" id="cards">
+  <h2 id="lvlT"></h2>
+  <div id="cardrow"></div>
+</div>
+
+<div class="ov" id="over" style="display:none">
+  <h1 id="overT"></h1>
+  <div id="stats"></div>
+  <div class="btns"><button class="b pri" id="againBtn"></button></div>
+</div>
+
+<div class="ov" id="pause"><h1 id="pauseT" style="color:var(--dim)"></h1></div>
+
+<script src="./lib/three.min.js"></script>
+<script>
+'use strict';
+/* OCARA 3D prototip — simülasyon (step) ve render (draw) ayrımı, 2B sürümündeki (v28+) mimari gibi. */
+window.__errs=[];addEventListener('error',function(e){window.__errs.push(String(e.message||e));});
+
+/* ---------- i18n (TR kaynak) ---------- */
+var lang = localStorage.getItem('oca_lang')==='de'?'de':'tr';
+var DE={
+ 'Son Alev — 3B Prototip':'Die Letzte Flamme — 3D-Prototyp',
+ 'Başla':'Start','Dil: Türkçe':'Sprache: Deutsch',
+ 'Kontroller: WASD hareket · Fare nişan/ateş · SPACE atılma · P duraklat':
+ 'Steuerung: WASD Bewegung · Maus Zielen/Feuern · LEERTASTE Dash · P Pause',
+ '🕹️ Mobil kontroller sonraki turda — şimdi klavye + fare.':'🕹️ Mobile Steuerung folgt als nächstes — jetzt Tastatur + Maus.',
+ '◀ 2B sürümüne dön':'◀ Zurück zur 2D-Version','Seviye!':'Level auf!',
+ 'Oyun Bitti':'Game Over','Tekrar Dene':'Nochmal',
+ 'Dalga':'Welle','Altın':'Gold','Kesim':'Kills','Süre':'Zeit',
+ 'ŞEF GELİYOR!':'HÄSCHER KOMMT!','Alev Oku':'Flammenpfeil','%25 +hasar':'%25 mehr Schaden',
+ '+30 maks. can & iyileşme':'+30 max Leben & Heilung',
+ 'Rüzgar Adımları':'Schritteschritte','+18% hız':'+18% Tempo',
+ 'Kısa Nefes':'Kurzer Atem','Dash bekleme −%30':'Dash-Abklingzeit −30%',
+ 'Delici Alev':'Durchschlagende Flamme','Ok +1 delme':'Pfeil +1 Durchschlag',
+ 'Şifa Ateşi':'Heilfeuer','Her kesimde +3 can':'+3 Leben pro Kill',
+ 'Duraklatıldı — P ile devam':'Pausiert — mit P fortfahren',
+ 'Mod: Sonsuz (3D)':'Modus: Endlos (3D)'
+};
+DE['Kor Yürek']='Flammenherz'; DE['Rüzgar Adımları']='Schritteschritte';
+function L(s){return lang==='de'?(DE[s]||s):s;}
+
+/* ---------- DOM ---------- */
+var $=function(id){return document.getElementById(id);};
+var menuEl=$('menu'),cardsEl=$('cards'),overEl=$('over'),pauseEl=$('pause'),hudEl=$('hud');
+function paintMenu(){
+  $('subT').textContent=L('Son Alev — 3B Prototip');
+  $('startBtn').textContent=L('Başla')+' — '+L('Mod: Sonsuz (3D)');
+  $('langBtn').textContent=L('Dil: Türkçe');
+  $('ctrlNote').textContent=L('Kontroller: WASD hareket · Fare nişan/ateş · SPACE atılma · P duraklat')+'\n'+L('🕹️ Mobil kontroller sonraki turda — şimdi klavye + fare.');
+  $('back2d').textContent=L('◀ 2B sürümüne dön');
+  $('lvlT').textContent=L('Seviye!');
+  $('overT').textContent=L('Oyun Bitti');
+  $('againBtn').textContent=L('Tekrar Dene');
+  $('pauseT').textContent=L('Duraklatıldı — P ile devam');
+}
+paintMenu();
+$('langBtn').onclick=function(){lang=lang==='tr'?'de':'tr';localStorage.setItem('oca_lang',lang);paintMenu();};
+
+/* ---------- Three kurulumu ---------- */
+var renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.setClearColor(0x0b0d12);
+document.body.appendChild(renderer.domElement);
+addEventListener('resize',function(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();});
+
+var scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(0x0b0d12,0.020);
+var camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,0.1,200);
+
+scene.add(new THREE.HemisphereLight(0x3a4a66,0x120d08,2.2));
+var moon=new THREE.DirectionalLight(0x5a6b8c,0.6);moon.position.set(-12,22,-8);scene.add(moon);
+
+/* zemin + arena */
+var ARENA=30;
+var groundMat=new THREE.MeshStandardMaterial({color:0x161b27,roughness:.95,metalness:0});
+var ground=new THREE.Mesh(new THREE.CircleGeometry(ARENA+2,64),groundMat);
+ground.rotation.x=-Math.PI/2;scene.add(ground);
+var grid=new THREE.GridHelper(60,60,0x232c3f,0x1a2130);grid.position.y=0.02;scene.add(grid);
+/* sınır halkası */
+var ring=new THREE.Mesh(new THREE.TorusGeometry(ARENA,0.14,8,96),new THREE.MeshBasicMaterial({color:0x35507a,transparent:true,opacity:.5}));
+ring.rotation.x=Math.PI/2;ring.position.y=0.05;scene.add(ring);
+/* dekor kayalar */
+var rockMat=new THREE.MeshStandardMaterial({color:0x2a3140,roughness:.9,flatShading:true});
+(function(){var r=mulberry32(20261030);for(var i=0;i<26;i++){
+  var a=r()*Math.PI*2,d=6+r()*(ARENA-8),s=0.5+r()*1.5;
+  var m=new THREE.Mesh(new THREE.IcosahedronGeometry(s,0),rockMat);
+  m.position.set(Math.cos(a)*d,s*0.4,Math.sin(a)*d);m.rotation.set(r()*3,r()*3,r()*3);scene.add(m);
+}})();
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* ışık küresi: oyuncunun alevi */
+var flameLight=new THREE.PointLight(0xff7a30,60,30,2);
+scene.add(flameLight);
+
+/* gölge lekesi yardımcısı */
+var shadowGeo=new THREE.CircleGeometry(1,20);
+function blob(parent,r){var m=new THREE.Mesh(shadowGeo,new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.34}));
+  m.rotation.x=-Math.PI/2;m.scale.set(r,r,1);m.position.y=0.03;parent.add(m);}
+
+/* düşük-poly yaratık fabrikaları */
+function matStd(c,op){return new THREE.MeshStandardMaterial({color:c,roughness:.65,metalness:.05,transparent:op<1,fog:true});}
+function mkSlime(c){var g=new THREE.Group();var b=new THREE.Mesh(new THREE.SphereGeometry(.8,10,8),matStd(c,1));
+  b.scale.y=.72;b.position.y=.62;g.add(b);
+  var e1=new THREE.Mesh(new THREE.SphereGeometry(.11,6,6),new THREE.MeshBasicMaterial({color:0x101418}));
+  var e2=e1.clone();e1.position.set(-.22,.78,.62);e2.position.set(.22,.78,.62);g.add(e1,e2);
+  blob(g,.8);g.userData.body=b;return g;}
+function mkBat(c){var g=new THREE.Group();var b=new THREE.Mesh(new THREE.SphereGeometry(.42,8,8),matStd(c,1));g.add(b);
+  var wg=new THREE.ConeGeometry(.5,.16,4);
+  var wl=new THREE.Mesh(wg,matStd(c,1)),wr=wl.clone();
+  wl.position.set(-.55,0,0);wl.rotation.z=-.35;wr.position.set(.55,0,0);wr.rotation.z=Math.PI+.35;g.add(wl,wr);
+  var e1=new THREE.Mesh(new THREE.SphereGeometry(.07,5,5),new THREE.MeshBasicMaterial({color:0xffd54f}));
+  e1.position.set(0,.1,.4);g.add(e1);blob(g,.5);g.position.y=1.15;g.userData.wl=wl;g.userData.wr=wr;return g;}
+function mkGolem(c){var g=new THREE.Group();
+  var tb=new THREE.Mesh(new THREE.BoxGeometry(1.15,1.25,0.9),matStd(c,1,));tb.position.y=1.05;g.add(tb);
+  var hd=new THREE.Mesh(new THREE.BoxGeometry(.6,.55,.6),matStd(c,1));hd.position.y=1.95;g.add(hd);
+  var eg=new THREE.BoxGeometry(.14,.1,.1);var em=new THREE.MeshBasicMaterial({color:0x6fd3ff});
+  var e1=new THREE.Mesh(eg,em),e2=new THREE.Mesh(eg,em);e1.position.set(-.15,2,.31);e2.position.set(.15,2,.31);g.add(e1,e2);
+  var ag=new THREE.BoxGeometry(.3,1,.3);var al=new THREE.Mesh(ag,matStd(c,1)),ar=al.clone();
+  al.position.set(-.82,1.1,0);ar.position.set(.82,1.1,0);g.add(al,ar);
+  blob(g,.85);g.userData.body=tb;return g;}
+function mkBrute(c){var g=new THREE.Group();
+  var tb=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.5,1.1),matStd(c,1));tb.position.y=1.2;g.add(tb);
+  var hd=new THREE.Mesh(new THREE.SphereGeometry(.42,8,8),matStd(c,1));hd.position.y=2.25;g.add(hd);
+  var ag=new THREE.BoxGeometry(.42,1.2,.42);var al=new THREE.Mesh(ag,matStd(c,1)),ar=al.clone();
+  al.position.set(-1.05,1.15,0);ar.position.set(1.05,1.15,0);g.add(al,ar);
+  var hg=new THREE.ConeGeometry(.14,.5,5);var em=new THREE.MeshBasicMaterial({color:0xffe082});
+  var h1=new THREE.Mesh(hg,em),h2=new THREE.Mesh(hg,em);
+  h1.position.set(-.28,2.6,0);h1.rotation.z=.3;h2.position.set(.28,2.6,0);h2.rotation.z=-.3;g.add(h1,h2);
+  blob(g,1);g.userData.body=tb;return g;}
+function mkArcher(c){var g=new THREE.Group();
+  var tb=new THREE.Mesh(new THREE.CylinderGeometry(.42,.55,1.25,8),matStd(c,1));tb.position.y=.75;g.add(tb);
+  var hd=new THREE.Mesh(new THREE.SphereGeometry(.34,8,8),matStd(c,1));hd.position.y=1.65;g.add(hd);
+  var ht=new THREE.Mesh(new THREE.ConeGeometry(.4,.55,8),new THREE.MeshStandardMaterial({color:0x1d2733,roughness:.8}));
+  ht.position.y=2.05;g.add(ht);
+  var bow=new THREE.Mesh(new THREE.TorusGeometry(.5,.05,6,12,2.2),new THREE.MeshStandardMaterial({color:0xb98a4a,roughness:.5}));
+  bow.position.set(.55,1.05,.15);bow.rotation.y=Math.PI/2;g.add(bow);
+  blob(g,.6);g.userData.body=tb;return g;}
+function mkWraith(c){var g=new THREE.Group();
+  var mm=new THREE.MeshStandardMaterial({color:c,roughness:.4,transparent:true,opacity:.55});
+  var b=new THREE.Mesh(new THREE.ConeGeometry(.62,1.5,9),mm);b.rotation.x=Math.PI;b.position.y=1.1;g.add(b);
+  var hd=new THREE.Mesh(new THREE.SphereGeometry(.36,8,8),mm);hd.position.y=1.95;g.add(hd);
+  var em=new THREE.MeshBasicMaterial({color:0xb388ff});
+  var e1=new THREE.Mesh(new THREE.SphereGeometry(.06,5,5),em),e2=e1.clone();
+  e1.position.set(-.13,2,.3);e2.position.set(.13,2,.3);g.add(e1,e2);
+  blob(g,.55);g.position.y=.5;g.userData.body=b;return g;}
+
+/* ---------- oyun durumu ---------- */
+var state='menu';
+var P,G,keys={},mouseDown=false,mouseNDC={x:0,y:0},aim=new THREE.Vector3();
+var clockT=0,lastTs=performance.now();
+function mkPlayer(){
+  var g=new THREE.Group();
+  var body=new THREE.Mesh(new THREE.ConeGeometry(.55,1.3,9),new THREE.MeshStandardMaterial({color:0xff7a39,emissive:0xff5a1a,emissiveIntensity:.9,roughness:.4}));
+  body.position.y=1.05;g.add(body);
+  var core=new THREE.Mesh(new THREE.SphereGeometry(.26,8,8),new THREE.MeshBasicMaterial({color:0xffd76a}));
+  core.position.y=1.25;g.add(core);
+  var halo=new THREE.Mesh(new THREE.SphereGeometry(1.05,12,10),new THREE.MeshBasicMaterial({color:0xff7a39,transparent:true,opacity:.14}));
+  halo.position.y=1.1;g.add(halo);
+  blob(g,.7);
+  g.userData={body:body,core:core,halo:halo};
+  return g;
+}
+function initRun(){
+  /* eski varlıkları temizle */
+  if(P){scene.remove(P.grp);}
+  if(G){[G.enemies,G.shots,G.eshots,G.orbs,G.parts,G.haz].forEach(function(a){a.forEach(function(x){scene.remove(x.mesh);});});}
+  P={grp:mkPlayer(),x:0,z:0,hp:100,maxhp:100,spd:8.4,atk:12,aspd:0.42,atkT:0,range:11.5,pierce:0,
+     invuln:0,dashT:0,dashCd:0,dashCdMax:2.4,killHeal:0,slowT:0,face:0};
+  scene.add(P.grp);
+  G={enemies:[],shots:[],eshots:[],orbs:[],parts:[],haz:[],
+     wave:0,pending:0,spawnT:0,xp:0,lvl:1,xpNeed:7,gold:0,kills:0,t0:performance.now(),
+     shakeT:0,bossRef:null,over:false};
+  nextWave();
+}
+var EK={
+ slime:{hp:20,grow:3,spd:2.6,dmg:6,xp:2,r:.9,mk:function(){return mkSlime(0x53a653);}},
+ bat:{hp:12,grow:2,spd:4.6,dmg:4,xp:2,r:.7,mk:function(){return mkBat(0x7e57c2);}},
+ arch:{hp:16,grow:2.6,spd:2.2,dmg:7,xp:3,r:.75,mk:function(){return mkArcher(0x26a69a);},ranged:true},
+ golem:{hp:60,grow:8,spd:1.7,dmg:12,xp:5,r:1.2,mk:function(){return mkGolem(0x78909c);}},
+ brute:{hp:45,grow:6,spd:2.9,dmg:10,xp:4,r:1.15,mk:function(){return mkBrute(0x8d6e63);}},
+ wraith:{hp:30,grow:4,spd:3.6,dmg:8,xp:4,r:.85,mk:function(){return mkWraith(0x90a4ae);}}
+};
+var BOSSK=['slime','golem','brute','arch','wraith'];
+var BOSSNM=['Çürük Kral','Dağ Ustası','Kum Tsarı','Okçu Ruhan','Frost Tsar'];
+function spawnEnemy(kind,boss){
+  var k=EK[kind],w=G.wave;
+  var m=k.mk();var a=Math.random()*Math.PI*2,d=ARENA-1.5;
+  var e={kind:kind,mesh:m,x:Math.cos(a)*d,z:Math.sin(a)*d,
+    hp:(k.hp+k.grow*w)*(boss?18:1)+ (boss?w*40:0),
+    spd:k.spd*(boss?.8:1),dmg:k.dmg*(boss?1.7:1),r:k.r*(boss?2.2:1),
+    xp:(boss?45:w+5)*(boss?3:1),touchCd:0,shootT:1+Math.random(),boss:!!boss,
+    bk:boss?(kind==='arch'?'volley':'nova'):null,skillT:2.4,nm:boss?BOSSNM[BOSSK.indexOf(kind)]||'Şef':''};
+  m.scale.setScalar(boss?2.2:1);
+  m.position.x=e.x;m.position.z=e.z;
+  scene.add(m);G.enemies.push(e);
+  if(boss){G.bossRef=e;$('bosswrap').style.display='block';$('bosslbl').style.display='block';
+    $('bosslbl').textContent='☠ '+e.nm;flashBanner();}
+}
+function nextWave(){
+  G.wave++;G.pending=Math.min(46,4+Math.round(G.wave*1.7));G.spawnT=.4;
+  $('waveT').innerHTML=L('Dalga')+' <b>'+G.wave+'</b>';
+  if(G.wave%5===0){var bk=BOSSK[(G.wave/5-1)%BOSSK.length];spawnEnemy(bk,true);G.pending=Math.round(G.pending/2);}
+}
+function flashBanner(){var b=$('bosslbl');b.style.transform='translateX(-50%) scale(1.25)';setTimeout(function(){b.style.transform='translateX(-50%)';},300);}
+
+/* ---------- girdi ---------- */
+addEventListener('keydown',function(ev){
+  var k=ev.key.toLowerCase();keys[k]=true;
+  if(k===' '&&state==='play'&&P.dashCd<=0){P.dashT=.22;P.invuln=.4;P.dashCd=P.dashCdMax;ev.preventDefault();}
+  if(k==='p'){if(state==='play'){state='pause';pauseEl.style.display='flex';}else if(state==='pause'){state='play';pauseEl.style.display='none';lastTs=performance.now();}}
+});
+addEventListener('keyup',function(ev){keys[ev.key.toLowerCase()]=false;});
+addEventListener('blur',function(){keys={};mouseDown=false;}); /* v29 dersi: tuş klemesin */
+renderer.domElement.addEventListener('pointerdown',function(ev){if(ev.button===0)mouseDown=true;onMove(ev);});
+addEventListener('pointerup',function(ev){if(ev.button===0)mouseDown=false;});
+addEventListener('pointermove',onMove);
+function onMove(ev){mouseNDC.x=(ev.clientX/innerWidth)*2-1;mouseNDC.y=-(ev.clientY/innerHeight)*2+1;}
+var rayc=new THREE.Raycaster(),groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+
+/* ---------- parçacık & orb ---------- */
+function puff(x,y,z,c,n){for(var i=0;i<n;i++){var m=new THREE.Mesh(new THREE.SphereGeometry(.13,5,5),new THREE.MeshBasicMaterial({color:c}));
+  m.position.set(x,y,z);scene.add(m);
+  G.parts.push({mesh:m,vx:(Math.random()-.5)*9,vy:2+Math.random()*6,vz:(Math.random()-.5)*9,ttl:.55});}}
+function dropOrb(x,z,v){var m=new THREE.Mesh(new THREE.OctahedronGeometry(.26,0),new THREE.MeshBasicMaterial({color:0x46a5ff}));
+  m.position.set(x,.5,z);scene.add(m);G.orbs.push({mesh:m,vy:0,val:v,spin:Math.random()*3});}
+
+/* ---------- step: simülasyon ---------- */
+function step(dt){
+  clockT+=dt;
+  /* hedef imleç → zemin düzlemi */
+  rayc.setFromCamera(mouseNDC,camera);
+  if(!rayc.ray.intersectPlane(groundPlane,aim))aim.set(P.x,0,P.z-5);
+  P.face=Math.atan2(aim.x-P.x,aim.z-P.z);
+
+  /* hareket */
+  var mx=(keys['d']||keys['arrowright']?1:0)-(keys['a']||keys['arrowleft']?1:0);
+  var mz=(keys['w']||keys['arrowup']?1:0)-(keys['s']||keys['arrowdown']?1:0);
+  /* kamera bakışı: +z ekrandan uzağa değil, kameraya göre çevir (kamera -z tarafından bakıyor) */
+  var spd=P.spd*(P.slowT>0?.6:1);P.slowT=Math.max(0,P.slowT-dt);
+  if(P.dashT>0){P.dashT-=dt;spd=26;}
+  if(mx||mz){var l=Math.hypot(mx,mz);P.x+=mx/l*spd*dt;P.z+=-mz/l*spd*dt;}
+  var dd=Math.hypot(P.x,P.z);if(dd>ARENA-P.r){P.x*=((ARENA-P.r)/dd);P.z*=((ARENA-P.r)/dd);}
+  P.dashCd=Math.max(0,P.dashCd-dt);
+  P.invuln=Math.max(0,P.invuln-dt);
+  P.grp.position.set(P.x,0,P.z);P.grp.rotation.y=P.face;
+
+  /* ateş (basılı tut = otomatik) */
+  P.atkT=Math.max(0,P.atkT-dt);
+  if(mouseDown&&P.atkT<=0)shoot();
+
+  /* dalgalar */
+  if(G.pending>0){G.spawnT-=dt;if(G.spawnT<=0){G.spawnT=Math.max(.18,.55-G.wave*.012);
+    var pool=['slime','bat'];if(G.wave>=3)pool.push('arch');if(G.wave>=4)pool.push('brute');
+    if(G.wave>=6)pool.push('golem');if(G.wave>=8)pool.push('wraith');
+    spawnEnemy(pool[(Math.random()*pool.length)|0],false);G.pending--;}}
+  else if(G.enemies.length===0){nextWave();}
+
+  /* düşmanlar */
+  for(var i=0;i<G.enemies.length;i++){var e=G.enemies[i];
+    var dx=P.x-e.x,dz=P.z-e.z,dl=Math.hypot(dx,dz)||1;
+    var stop=e.bk==='volley'?12:(e.kind==='arch'?10:0);
+    if(!stop||dl>stop+e.r){e.x+=dx/dl*e.spd*dt;e.z+=dz/dl*e.spd*dt;}
+    e.mesh.position.x=e.x;e.mesh.position.z=e.z;
+    e.mesh.rotation.y=Math.atan2(dx,dz);
+    e.touchCd=Math.max(0,e.touchCd-dt);
+    if(dl<e.r+P.r+.35&&e.touchCd<=0){e.touchCd=.9;hurtPlayer(e.dmg);}
+    /* okçu ateşi */
+    if((e.kind==='arch'||e.bk==='volley')&&!e.boss){e.shootT-=dt;
+      if(e.shootT<=0&&dl<15){e.shootT=1.7;eshoot(e.x,1.1,e.z,dx/dl,dz/dl,14,e.dmg);}}
+    /* boss yetenekleri (v29 dersi: bk/skillT her spawn yolunda) */
+    if(e.boss){e.skillT-=dt;
+      if(e.skillT<=0){e.skillT=3.4;
+        if(e.kind==='arch'){for(var j=0;j<10;j++){var a2=j/10*Math.PI*2;eshoot(e.x,1.4,e.z,Math.cos(a2),Math.sin(a2),12,e.dmg*.6);}}
+        else if(e.kind==='wraith'){for(var q=0;q<6;q++){var a3=Math.random()*Math.PI*2,qd=2+Math.random()*6;icePool(e.x+Math.cos(a3)*qd,e.z+Math.sin(a3)*qd);}}
+        else{for(var k2=0;k2<8;k2++){var a4=k2/8*Math.PI*2;eshoot(e.x,1.3,e.z,Math.cos(a4),Math.sin(a4),11,e.dmg*.5);}}}}
+  }
+
+  /* oyuncu mermileri */
+  for(var s=G.shots.length-1;s>=0;s--){var sh=G.shots[s];
+    sh.x+=sh.vx*dt;sh.z+=sh.vz*dt;sh.life-=dt;
+    sh.mesh.position.set(sh.x,.8,sh.z);
+    var hit=false;
+    for(var e2i=0;e2i<G.enemies.length;e2i++){var en=G.enemies[e2i];
+      var hx=en.x-sh.x,hz=en.z-sh.z;
+      if(hx*hx+hz*hz<(en.r+.35)*(en.r+.35)){
+        hitEnemy(en,sh.dmg);sh.pierce--;
+        if(sh.pierce<0){hit=true;break;}}}
+    if(hit||sh.life<=0||Math.hypot(sh.x,sh.z)>ARENA+1){scene.remove(sh.mesh);G.shots.splice(s,1);}}
+
+  /* düşman mermileri */
+  for(var s2=G.eshots.length-1;s2>=0;s2--){var es=G.eshots[s2];
+    es.x+=es.vx*dt;es.z+=es.vz*dt;es.life-=dt;es.mesh.position.set(es.x,es.y,es.z);
+    var pd=Math.hypot(P.x-es.x,P.z-es.z);
+    if(pd<P.r+.4){hurtPlayer(es.dmg);puff(es.x,.8,es.z,0xb388ff,4);scene.remove(es.mesh);G.eshots.splice(s2,1);continue;}
+    if(es.life<=0){scene.remove(es.mesh);G.eshots.splice(s2,1);}}
+
+  /* tehlikeler: buz yavaşlatır, ateş yakar — ikisi de TTL ile ölür (v29 dersi) */
+  for(var hz2=G.haz.length-1;hz2>=0;hz2--){var hz=G.haz[hz2];hz.ttl-=dt;
+    hz.mesh.scale.x=hz.mesh.scale.z=hz.ttl<1?Math.max(.1,hz.ttl):hz.r;
+    var pd2=Math.hypot(P.x-hz.x,P.z-hz.z);
+    if(pd2<hz.r+P.r){if(hz.kind==='ice')P.slowT=.35;else hurtPlayer(8*dt,false);}
+    if(hz.ttl<=0){scene.remove(hz.mesh);G.haz.splice(hz2,1);}}
+
+  orblar: for(var o=G.orbs.length-1;o>=0;o--){var ob=G.orbs[o];
+    ob.mesh.rotation.y+=dt*3;ob.mesh.position.y=.5+Math.sin(clockT*3+ob.spin)*.12;
+    var od=Math.hypot(P.x-ob.mesh.position.x,P.z-ob.mesh.position.z);
+    if(od<3.2){var pull=dt*10*(3.2-od);ob.mesh.position.x+=(P.x-ob.mesh.position.x)/od*Math.min(od,pull);
+      ob.mesh.position.z+=(P.z-ob.mesh.position.z)/od*Math.min(od,pull);}
+    if(od<.9){G.xp+=ob.val;scene.remove(ob.mesh);G.orbs.splice(o,1);checkLevel();}}
+
+  /* parçacıklar */
+  for(var p=G.parts.length-1;p>=0;p--){var pa=G.parts[p];
+    pa.vy-=16*dt;pa.mesh.position.x+=pa.vx*dt;pa.mesh.position.y+=pa.vy*dt;pa.mesh.position.z+=pa.vz*dt;
+    pa.ttl-=dt;pa.mesh.scale.setScalar(Math.max(.05,pa.ttl*1.8));
+    if(pa.ttl<=0){scene.remove(pa.mesh);G.parts.splice(p,1);}}
+
+  /* HUD */
+  $('hpfill').style.width=Math.max(0,P.hp/P.maxhp*100)+'%';
+  $('goldT').innerHTML=L('Altın')+' <b>'+G.gold+'</b>';
+  $('killT').innerHTML=L('Kesim')+' <b>'+G.kills+'</b>';
+  $('dashI').textContent=P.dashCd>0?('⟳ '+P.dashCd.toFixed(1)):('⚡ SPACE');
+  if(G.bossRef&&G.bossRef.hp>0){$('bossfill').style.width=Math.max(0,G.bossRef.hp/(G.bossRef.maxhp||G.bossRef.hp)*100)+'%';}
+  else if(G.bossRef){$('bosswrap').style.display='none';$('bosslbl').style.display='none';G.bossRef=null;}
+}
+
+function shoot(){P.atkT=P.aspd;
+  var m=new THREE.Mesh(new THREE.SphereGeometry(.24,7,7),new THREE.MeshBasicMaterial({color:0xffb060}));
+  m.scale.set(1,1,2.4);scene.add(m);
+  var vx=Math.sin(P.face),vz=Math.cos(P.face);
+  var life=P.range/30+.12; /* v29 dersi: yaşam menzile bağlı */
+  m.position.set(P.x+vx*1,0.8,P.z+vz*1);
+  m.rotation.y=P.face;
+  G.shots.push({mesh:m,x:m.position.x,z:m.position.z,vx:vx*30,vz:vz*30,life:life,dmg:P.atk,pierce:P.pierce});
+}
+function eshoot(x,y,z,dx,dz,sp,dmg){var m=new THREE.Mesh(new THREE.SphereGeometry(.2,6,6),new THREE.MeshBasicMaterial({color:0xb388ff}));
+  m.position.set(x,y,z);scene.add(m);G.eshots.push({mesh:m,x:x,z:z,vx:dx*sp,vz:dz*sp,life:2.4,y:y,dmg:dmg});}
+function icePool(x,z){var m=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.14,16),
+  new THREE.MeshBasicMaterial({color:0x4fc3f7,transparent:true,opacity:.4}));
+  m.position.set(x,.07,z);m.scale.x=m.scale.z=2.2;scene.add(m);G.haz.push({mesh:m,x:x,z:z,r:2.2,ttl:6,kind:'ice'});}
+function hurtPlayer(d,flash){if(P.invuln>0)return;P.hp-=d;P.invuln=Math.max(P.invuln,.18);G.shakeT=.22;
+  if(P.hp<=0)gameOver();}
+function hitEnemy(e,d){e.hp-=d;var ud=e.mesh.userData;if(ud.body&&ud.body.material.emissive){
+  ud.body.material.emissive.setHex(0xffffff);ud.body.material.emissiveIntensity=.9;
+  setTimeout(function(ud2){if(ud2.body&&ud2.body.material.emissive){ud2.body.material.emissive.setHex(ud2.baseEm||0);ud2.body.material.emissiveIntensity=.25;}}.bind(null,ud),70);}
+  puff(e.x,e.r+.4,e.z,0xffd54f,2);
+  if(e.hp<=0)killEnemy(e);}
+function killEnemy(e){
+  puff(e.x,e.r+.5,e.z,0xff7a39,e.boss?14:6);
+  scene.remove(e.mesh);
+  var ix=G.enemies.indexOf(e);if(ix>=0)G.enemies.splice(ix,1);
+  G.kills++;G.gold+=e.boss?25:1+((Math.random()*2)|0);
+  dropOrb(e.x,e.z,e.xp);
+  if(P.killHeal>0)P.hp=Math.min(P.maxhp,P.hp+P.killHeal);
+  if(e.boss){$('bosswrap').style.display='none';$('bosslbl').style.display='none';if(G.bossRef===e)G.bossRef=null;}}
+function checkLevel(){
+  while(G.xp>=G.xpNeed){G.xp-=G.xpNeed;G.lvl++;G.xpNeed=Math.round(6+G.lvl*4.5);
+    P.maxhp+=2;P.hp=Math.min(P.maxhp,P.hp+5);openCards();}}
+var CARDS=[
+ {ic:'🔥',t:'Alev Oku',d:'%25 +hasar',f:function(){P.atk*=1.25;}},
+ {ic:'🫀',t:'Kor Yürek',d:'+30 maks. can & iyileşme',f:function(){P.maxhp+=30;P.hp=Math.min(P.maxhp,P.hp+30);}},
+ {ic:'🌪️',t:'Rüzgar Adımları',d:'+18% hız',f:function(){P.spd*=1.18;}},
+ {ic:'💨',t:'Kısa Nefes',d:'Dash bekleme −%30',f:function(){P.dashCdMax*=.7;}},
+ {ic:'🏹',t:'Delici Alev',d:'Ok +1 delme',f:function(){P.pierce+=1;}},
+ {ic:'💗',t:'Şifa Ateşi',d:'Her kesimde +3 can',f:function(){P.killHeal+=3;}}];
+function openCards(){
+  state='cards';cardsEl.style.display='flex';
+  var row=$('cardrow');row.innerHTML='';
+  var pool=CARDS.slice();var picks=[];
+  for(var i=0;i<3&&pool.length;i++)picks.push(pool.splice((Math.random()*pool.length)|0,1)[0]);
+  picks.forEach(function(c){var d=document.createElement('div');d.className='card';
+    d.innerHTML='<div class="ic">'+c.ic+'</div><div class="t">'+L(c.t)+'</div><div class="d">'+L(c.d)+'</div>';
+    d.onclick=function(){c.f();cardsEl.style.display='none';state='play';lastTs=performance.now();};
+    row.appendChild(d);});}
+function gameOver(){
+  if(G.over)return;G.over=true;state='over';
+  var mins=((performance.now()-G.t0)/60000)|0,secs=(((performance.now()-G.t0)/1000)|0)%60;
+  $('stats').innerHTML=L('Dalga')+' <b>'+G.wave+'</b> · '+L('Kesim')+' <b>'+G.kills+'</b> · '+L('Altın')+' <b>'+G.gold+'</b> · '+L('Süre')+' <b>'+mins+':'+(secs<10?'0':'')+secs+'</b>';
+  overEl.style.display='flex';}
+$('startBtn').onclick=function(){menuEl.style.display='none';hudEl.style.display='flex';initRun();state='play';lastTs=performance.now();};
+$('againBtn').onclick=function(){overEl.style.display='none';hudEl.style.display='flex';initRun();state='play';lastTs=performance.now();};
+
+/* ---------- draw: sahne güncelleme + render ---------- */
+function draw(dt){
+  /* alev titremesi */
+  var fl=1+Math.sin(clockT*11)*.07+Math.sin(clockT*23)*.05;
+  if(P){var ud=P.grp.userData;
+    ud.body.scale.set(1,fl,1);ud.core.scale.setScalar(.9+Math.sin(clockT*15)*.12);
+    ud.halo.scale.setScalar(1+Math.sin(clockT*4)*.1);
+    P.grp.children[0].material.emissiveIntensity=.7+Math.sin(clockT*13)*.3;
+    flameLight.position.set(P.x,1.4,P.z);flameLight.intensity=58+Math.sin(clockT*17)*10;}
+  /* yaratık animasyonları */
+  for(var i=0;i<G.enemies.length;i++){var e=G.enemies[i],ud2=e.mesh.userData;
+    if(e.kind==='slime'&&ud2.body){var sq=1+Math.sin(clockT*6+i)*.14;ud2.body.scale.set(1+ (1-sq)*.5,sq*.72,1+(1-sq)*.5);}
+    if(e.kind==='bat'){if(ud2.wl){ud2.wl.rotation.z=-.35+Math.sin(clockT*16+i)*.9;ud2.wr.rotation.z=Math.PI+.35-Math.sin(clockT*16+i)*.9;}
+      e.mesh.position.y=1.15+Math.sin(clockT*3+i)*.2;}
+    if(e.kind==='wraith'){e.mesh.position.y=.5+Math.sin(clockT*2.2+i)*.18;if(ud2.body)ud2.body.material.opacity=.45+Math.sin(clockT*3+i)*.12;}
+    if((e.kind==='golem'||e.kind==='brute')&&ud2.body){ud2.body.rotation.y=Math.sin(clockT*3+i)*.08;}}
+  /* kamera takibi (menüde yavaş tur) */
+  var tx,tz,th;
+  if(state==='menu'||!P){var a=clockT*.15;tx=Math.cos(a)*24;tz=Math.sin(a)*24;th=14;}
+  else{tx=P.x;tz=P.z;th=0;}
+  var want=new THREE.Vector3(state==='menu'?tx:tx,state==='menu'?th:22,state==='menu'?tz:tz+15.5);
+  camera.position.lerp(want,Math.min(1,dt*3.2));
+  if(G&&G.shakeT>0){G.shakeT-=dt;var k=G.shakeT*2;
+    camera.position.x+=(Math.random()-.5)*k;camera.position.y+=(Math.random()-.5)*k;}
+  var look=state==='menu'?new THREE.Vector3(0,1.1,0):new THREE.Vector3(tx,1.1,tz);
+  camera.lookAt(look);
+  renderer.render(scene,camera);
+}
+
+/* ---------- ana döngü (v28 dersi: step/draw ayrı yakalanır) ---------- */
+function loop(ts){
+  requestAnimationFrame(loop);
+  var dt=Math.min(.05,(ts-lastTs)/1000);lastTs=ts;
+  if(state==='play'){try{step(dt);}catch(err){window.__errs.push(String(err.message||err));}}
+  try{draw(dt);}catch(err){window.__errs.push('draw:'+String(err.message||err));}
+}
+requestAnimationFrame(loop);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)lastTs=performance.now();});
+</script>
+</body>
+</html>

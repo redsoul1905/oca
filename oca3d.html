@@ -722,7 +722,10 @@ function loop(now){var dt=Math.min(.05,(now-lastT)/1000);lastT=now;
  camera.lookAt(look);
  renderer.render(scene,camera);
  requestAnimationFrame(loop)}
-document.getElementById('verTag').textContent='oca-v34 · 3B Prototip';
+document.getElementById('verTag').textContent='oca-v36 · 3B Prototip';
+/* QC-/Debug-Griff (block-scope-Funktionen nach aussen; Getter wegen Reassignment) */
+window.__oc={step:step,draw:draw,loop:loop,initRun:initRun,showMenu:showMenu,spawnEnemy:spawnEnemy,shoot:shoot,eshoot:eshoot,icePool:icePool,hitEnemy:hitEnemy,checkLevel:checkLevel,
+ get P(){return P},get G(){return G},get state(){return state},renderer:renderer,scene:scene,camera:camera,menuStage:menuStage};
 applyI18n();
 requestAnimationFrame(loop);
 addEventListener('resize',function(){W=innerWidth;H=innerHeight;if(renderer){renderer.setSize(W,H);camera.aspect=W/H;camera.updateProjectionMatrix()}});

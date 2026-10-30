@@ -263,11 +263,11 @@ function spawnEnemy(kind,boss){
   var k=EK[kind],w=G.wave;
   var m=k.mk();var a=Math.random()*Math.PI*2,d=ARENA-1.5;
   var e={kind:kind,mesh:m,x:Math.cos(a)*d,z:Math.sin(a)*d,
-    hp:(k.hp+k.grow*w)*(boss?18:1)+ (boss?w*40:0),
-    spd:k.spd*(boss?.8:1),dmg:k.dmg*(boss?1.7:1),r:k.r*(boss?2.2:1),
+    hp:(k.hp+k.grow*w)*(boss?18:1)+ (boss?w*40:0),    spd:k.spd*(boss?.8:1),dmg:k.dmg*(boss?1.7:1),r:k.r*(boss?2.2:1),
     xp:(boss?45:w+5)*(boss?3:1),touchCd:0,shootT:1+Math.random(),boss:!!boss,
     bk:boss?(kind==='arch'?'volley':'nova'):null,skillT:2.4,nm:boss?BOSSNM[BOSSK.indexOf(kind)]||'Şef':''};
   m.scale.setScalar(boss?2.2:1);
+  e.maxhp=e.hp; /* boss can cubuğu azalmasi icin (maxhp yoksa bar hep %100 kalirdi) */
   m.position.x=e.x;m.position.z=e.z;
   scene.add(m);G.enemies.push(e);
   if(boss){G.bossRef=e;$('bosswrap').style.display='block';$('bosslbl').style.display='block';

@@ -1643,7 +1643,7 @@ function step(dt){
         fireRing(e, 170);  /* Glutzar: Glutpfützen — verbrennt auch seine eigenen Krabbler */
         burst(e.x,e.y,18,'#f0654a'); G.shake=5;
       }
-      if(e.bk==='volley' && e.skillT<=0 && d<520){ /* boneTsar: üç yönlü ok salvosu */
+      if(e.bk==='volley' && e.skillT<=0 && dist(e,P)<520){ /* boneTsar: üç yönlü ok salvosu (d war hier nicht in Scope -> ReferenceError, Freeze) */
         e.skillT=2.3;
         for(const off2 of [-0.14,0,0.14])
           G.shots.push({x:e.x,y:e.y,vx:Math.cos(ang+off2)*330,vy:Math.sin(ang+off2)*330,r:6,dmg:e.dmg*0.8,life:2.5,enemy:true,col:'#d9d2b6'});
@@ -2026,7 +2026,11 @@ function gameOver(){
     `${nb?'<div class="newbest">★ YENİ REKOR ★</div>':''}`+
     `Seviye <b>${P.lvl}</b> · Dalga <b>${G.wave}</b> · Öldürme <b>${P.kills}</b> · Kaynak <b>${P.collected}</b><br>`+
     `Süre <b>${Math.floor(P.time/60)}dk ${('0'+Math.floor(P.time%60)).slice(-2)}sn</b> — Skor <b>${sc}</b><br>Rekor: <b>${best}</b>`+
-    (()=>{ const HN={slime:'Slime',bat:'Bat',golem:'Golem',mage:'Mage',wraith:'Wraith',brute:'Brute',boss:'Boss',fire:'Fire puddle',ice:'Ice zone',sting:'Sting',nova:'Shockwave',arrow:'Projectile'}; const h=G.lastHit; const k=h&&h.type?((ETYPES[h.type]&&ETYPES[h.type].em?ETYPES[h.type].em+' ':'')+h.type):h; return h?('<br>☠ Erlegt von: <b>'+k+'</b>'):''; })();
+    (()=>{ const HN={slime:'Slime',bat:'Yarasa',golem:'Golem',mage:'Büyücü',wraith:'Hayalet',brute:'Kaba',boss:'Şef',fire:'Ateş havuzu',ice:'Buz bölgesi',sting:'İğne',nova:'Şok dalgası',arrow:'Ok',pool:'Katran havuzu',spikes:'Dikenler'};
+      const h=G.lastHit; if(!h) return '';
+      const ty=(h.type||h.kind); const em=(ETYPES[ty]&&ETYPES[ty].em?ETYPES[ty].em+' ':'');
+      const nm=h.nm||(ETYPES[ty]&&ETYPES[ty].nm)||HN[ty]||ty;   /* Boss-nm, sonst Typname, sonst Gefahr */
+      return '<br>☠ Vuran: <b>'+em+nm+'</b>'; })();
   document.getElementById('over').classList.remove('hidden');
   lastEntry={score:sc, wave:G.wave, kills:P.kills, lvl:P.lvl, time:Math.round(P.time)};
   lastRunText='OCARA — Last Flame Standing — '+L('Seviye')+' '+P.lvl+' · '+L('DALGA')+' '+G.wave+' · '+sc+' '+L('puan')+' 🏔';
@@ -2570,7 +2574,9 @@ function drawBoss(e){
   c.restore();
 }
 function drawEnemy(e){
-  if(G && G.camp && drawCampEnemy(e)) return;
+  /* CAMP_TYPES enthaelt nur Sonder-/Boss-Typen (inkl. aller Endlos-Mega-Bosse) ->
+     Lookup laeuft jetzt unabhaengig vom Modus; Grundtypen fallen weiter durch. */
+  if(G && drawCampEnemy(e)) return;
   CTX.fillStyle = e.hitT>0 ? '#ffffff' : e.col;
   CTX.globalAlpha = e.boss ? 1 : 0.95;
   if(e.elite){ CTX.save(); CTX.strokeStyle='rgba(242,217,140,'+(0.45+0.25*Math.sin(GT*6+e.x))+')'; CTX.lineWidth=2.5;
@@ -3057,9 +3063,13 @@ function drawHUD(){
   /* alt bilgi — dokunmatik butonların üstünde kalsın */
   const lift = IS_TOUCH ? Math.min(H*0.42, Math.round(176/VS)) : 0;
   ctx.textAlign='left'; ctx.font=f1(12); ctx.fillStyle='#c9b8ff';
-  const mx = W-36*k;
-  const pas = P.cls.pas;
-  ctx.fillText('✦ Pasif: '+(W<760 && pas.length>46 ? pas.slice(0,44)+'…' : pas), 16*k, H-34*k-lift);
+  const pas = P.cls.pas, pasPre='✦ Pasif: ', pasMax=W-32*k;
+  if(W<900 && ctx.measureText(pasPre+pas).width > pasMax){
+    const ws=pas.split(' '); let l1='', l2='';
+    for(const w2 of ws){ if(l2 || (l1 && ctx.measureText(pasPre+l1+' '+w2).width > pasMax)) l2=(l2?l2+' ':'')+w2; else l1=(l1?l1+' ':'')+w2; }
+    ctx.fillText(pasPre+l1, 16*k, H-48*k-lift);
+    if(l2) ctx.fillText(l2, 16*k, H-34*k-lift);
+  } else ctx.fillText(pasPre+pas, 16*k, H-34*k-lift);
 
   const rem=Math.max(0,P.lastDash+P.dashCd-G.t);
   ctx.font=f1(12);
@@ -3068,14 +3078,21 @@ function drawHUD(){
 }
 
 /* ---------- ana döngü ---------- */
+const loopErrSeen=new Set(); let loopErrN=0;
 function loop(now){
   const dt=Math.min(0.05,(now-last)/1000); last=now;
+  /* Fehler-Enthaertung: step und draw getrennt abfangen. Teilten sie sich ein
+     try, uebersprang ein Wurf in step auch draw() -> Bildschirm fror dauerhaft
+     ein, waehrend der Boss weiter lief (boneTsar-Referenzfehler ab Welle 50). */
   try {
     if(state==='play' && G) step(dt);
-    draw();
   } catch(e) {
-    /* tek kare hatası oyunu dondurmasın: hatayı bir kez logla, döngü devam etsin */
-    if(!loop._errShown){ loop._errShown = true; console.error('Oyun karesinde hata:', e); }
+    loopErrN++; const k=String(e && e.message || e);
+    if(!loopErrSeen.has(k)){ loopErrSeen.add(k); console.error('Oyun karesinde hata (step, insg. '+loopErrN+'+):', e); }
+  }
+  try { draw(); } catch(e) {
+    const k=String(e && e.message || e);
+    if(!loopErrSeen.has('draw:'+k)){ loopErrSeen.add('draw:'+k); console.error('Oyun karesinde hata (draw):', e); }
   }
   requestAnimationFrame(loop);
 }
@@ -3258,7 +3275,6 @@ const WORLD_IDX={}, WORLD_BY={};
 CAMP.worlds.forEach((x,i)=>{ WORLD_IDX[x.id]=i; WORLD_BY[x.id]=x; });
 CAMP.levels = CAMP.levels.filter((L,i)=> i%4!==1); // her bölge başına 3 level (15 toplam)
 CAMP.levels.forEach((L,i)=>{ L.idx=i+1; L.world=WORLD_IDX[L.w]; L.stage=((i%3)+1); L.q=L.stage; L.cyc=3+(L.stage===2?1:0)+(L.stage===3?2:0); });
-function lvlp(L){ return { hmul:1+L.idx*0.16, smul:1+L.idx*0.014 }; }
 function campProgress(){ try{ const p=JSON.parse(localStorage.getItem('oca_camp')||'{}'); return {unlocked:Math.max(1,Math.min(16,+(p.unlocked||1))), chapters:Array.isArray(p.chapters)?p.chapters:[]}; }catch(e){ return {unlocked:1,chapters:[]}; } }
 function saveCamp(p){ try{ localStorage.setItem('oca_camp', JSON.stringify(p)); }catch(e){} }
 let menuMode='camp'; let menuDailyView=false;
@@ -3613,7 +3629,9 @@ function drawLavaSlimeE(e){
 }
 function drawTsarE(e){
   const c=CTX, r=e.r; c.save(); c.translate(e.x,e.y+Math.sin(GT*2)*1.5);
-  const sub=e.sub||'duneTsar';
+  /* sub war frueher nie gesetzt -> boneTsar/frostTsar/thornQueen/emberTsar zeichneten sich
+     alle als Sand-Tsar (falsche Farbe, Krone nie). Typ ist die echte Variante. */
+  const sub=e.sub||e.type||'duneTsar';
   const b=Math.sin(GT*3)*2;
   if(sub==='frostTsar'||sub==='boneTsar'||sub==='thornQueen'){
     c.fillStyle=e.col;

@@ -208,14 +208,14 @@ try{renderer=new THREE.WebGLRenderer({antialias:!IS_TOUCH,powerPreference:'high-
 if(renderer){
 renderer.setSize(W,H);renderer.setPixelRatio(Math.min(devicePixelRatio||1,IS_TOUCH?1.5:2));
 renderer.setClearColor(0x0a0e16);
-renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.3;
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.domElement.id='gl';document.body.appendChild(renderer.domElement);
 var scene=new THREE.Scene();
 scene.fog=new THREE.FogExp2(0x0a0e16,0.016);
 var camera=new THREE.PerspectiveCamera(55,W/H,.1,320);camera.position.set(0,22,32);
-var hemi=new THREE.HemisphereLight(0x8fb4e8,0x1c2233,.5);scene.add(hemi);
-var moon=new THREE.DirectionalLight(0xa8c0e0,.75);moon.position.set(16,30,-14);moon.castShadow=true;
+var hemi=new THREE.HemisphereLight(0x8fb4e8,0x1c2233,.85);scene.add(hemi);
+var moon=new THREE.DirectionalLight(0xa8c0e0,1.15);moon.position.set(16,30,-14);moon.castShadow=true;
 moon.shadow.mapSize.set(IS_TOUCH?1024:2048,IS_TOUCH?1024:2048);
 var sc=moon.shadow.camera;sc.left=-38;sc.right=38;sc.top=38;sc.bottom=-38;sc.near=6;sc.far=90;
 moon.shadow.bias=-.0008;moon.shadow.normalBias=.03;scene.add(moon);
@@ -714,7 +714,7 @@ function loop(now){var dt=Math.min(.05,(now-lastT)/1000);lastT=now;
  try{draw(dt)}catch(err){fatal(err)}
  /* kamera */
  var tx=P?P.x:0,tz=P?P.z:0,th=P?14:12;
- var cx=(P?P.x:Math.cos(clockT*.12)*13),cz=(P?P.z+15.5:Math.sin(clockT*.12)*13),cy=(P?22:4.6);
+ var cx=(P?P.x:Math.cos(clockT*.12)*13),cz=(P?P.z+9.2:Math.sin(clockT*.12)*13),cy=(P?12.5:4.6);
  camera.position.x+=(cx-camera.position.x)*Math.min(1,3.2*dt);
  camera.position.y+=(cy-camera.position.y)*Math.min(1,3.2*dt);
  camera.position.z+=(cz-camera.position.z)*Math.min(1,3.2*dt);

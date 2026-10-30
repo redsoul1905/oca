@@ -472,13 +472,23 @@ var menuStage=new THREE.Group();scene.add(menuStage);
 })();
 function heroAnim(grp,t,dt){var ud=grp.userData;
  var ar3=ud.armR,sw=ud.swingT||0,dr3=ud.drawT||0,ct3=ud.castT||0; /* v52: drawT=Bogen, castT=Stab */
- if(ar3){if(sw>0){ud.swingT=Math.max(0,sw-dt);ar3.rotation.x=-.25-Math.sin((1-sw/.28)*Math.PI)*1.9;if(ud.armL)ud.armL.rotation.x=-.55*Math.sin((1-sw/.28)*Math.PI)}
-  else if(dr3>0){ud.drawT=Math.max(0,dr3-dt);var kk=1-dr3/.38,pl=kk<.55?kk/.55:Math.max(0,1-(kk-.55)/.45);ar3.rotation.x=-.25-1.6*pl;ar3.rotation.z=0;if(ud.armL)ud.armL.rotation.x=-1.45*pl; /* v53: Sehne + eingelegter Pfeil */
+ if(ar3){if(sw>0){ud.swingT=Math.max(0,sw-dt);var k=1-sw/.3,ln=0; /* v59 Krieger 3-Phasen: Ausholen (Arm hinter Kopf, Oberkoerper spannt) -> Beschleunigungs-Hieb (quadratisch, Oberkoerper-Schwung, Schritt) -> Durchtrag */
+  if(k<.45){var e1=k/.45;ar3.rotation.x=.15+1.35*e1;ar3.rotation.z=-.75*e1;if(ud.body)ud.body.rotation.y=-.5*e1;ln=-.09*e1;if(ud.armL)ud.armL.rotation.x=-.15*e1}
+  else if(k<.72){var p1=(k-.45)/.27,q1=p1*p1;ar3.rotation.x=1.5-3.65*q1;ar3.rotation.z=-.75*(1-p1);if(ud.body)ud.body.rotation.y=-.5+1.05*q1;ln=-.09+.37*p1;if(ud.armL)ud.armL.rotation.x=-.15-.55*p1}
+  else{var r1=(k-.72)/.28;ar3.rotation.x=-2.15-.25*Math.sin(r1*Math.PI);ar3.rotation.z=0;if(ud.body)ud.body.rotation.y=.55*(1-r1*.8);ln=.28*(1-r1);if(ud.armL)ud.armL.rotation.x=-.7*(1-r1)}
+  if(ud.swD2){grp.position.x+=ud.swD2[0]*ln;grp.position.z+=ud.swD2[1]*ln}}
+  else if(dr3>0){ud.drawT=Math.max(0,dr3-dt);var kk=1-dr3/.46,pl=kk<.62?kk/.62:Math.max(0,1-(kk-.62)/.3); /* v59 Bogenschuetze 3-Phasen: Reach (Bogarm raus) -> Draw (Zughand zur Wange, Ellbogen hinter, Schultern offen) -> Loose (Sehne schnellt, Follow) */
+   if(kk<.16){var e2=kk/.16;ar3.rotation.x=-.25-1.0*e2;ar3.rotation.z=0;if(ud.armL)ud.armL.rotation.x=-1.45*e2;if(ud.body)ud.body.rotation.y=-.12*e2}
+   else if(kk<.62){var p2=(kk-.16)/.46;ar3.rotation.x=-1.25+.85*p2;ar3.rotation.z=1.05*p2;if(ud.armL)ud.armL.rotation.x=-1.45;if(ud.body)ud.body.rotation.y=-.3*p2}
+   else{var r2=(kk-.62)/.38;ar3.rotation.x=-.4-.22*Math.sin(r2*Math.PI);ar3.rotation.z=1.05*Math.max(0,1-r2*3);if(ud.armL)ud.armL.rotation.x=-1.45+.2*Math.sin(r2*Math.PI);if(ud.body)ud.body.rotation.y=-.3*Math.max(0,1-r2*2.5)} /* v53: Sehne + eingelegter Pfeil */
    var sg=ud._strg||(ud._strg=grp.getObjectByName('strg'));if(sg){if(sg.userData.z0===undefined)sg.userData.z0=sg.position.z;sg.position.z=sg.userData.z0+pl*.34}
-   var ar=ud._arr||(ud._arr=(function(){var a=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,1.15,6),new THREE.MeshBasicMaterial({color:0xfff3d0}));a.position.set(0,-.5,.1);if(ud.armL)ud.armL.add(a);return a})());ar.rotation.x=-Math.PI/2+1.45*pl;ar.visible=kk<.55; /* v57: Ziel-Laser waehrend Zug = Lesbarkeit + Aim-Hilfe */
-   var lz=ud._laser||(ud._laser=(function(){var c=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,11,6),new THREE.MeshBasicMaterial({color:0xfff2a8,transparent:true,opacity:.42,blending:THREE.AdditiveBlending,depthWrite:false}));c.rotation.x=Math.PI/2;c.position.set(0,1.32,5.5);if(!grp.userData.enemy)grp.add(c);return c})());lz.visible=kk<.55}
-  else if(ct3>0){ud.castT=Math.max(0,ct3-dt);var kc=1-ct3/.34;ar3.rotation.x=-.25-1.15*Math.min(1,Math.sin(Math.min(1.25,kc*1.4)*Math.PI/2)*1.1);if(ud.armL)ud.armL.rotation.x=-.5*kc;var gm=ud._gem||(ud._gem=grp.getObjectByName('gem'));if(gm)gm.material.emissiveIntensity=1.5+kc*6}
-  else{ar3.rotation.x+=((ud.walking?-.55*Math.sin((t||0)*7):-.25)-ar3.rotation.x)*Math.min(1,dt*10);if(ud.walking)ar3.rotation.z=-1.25+.25*Math.sin((t||0)*7);if(ud._gem)ud._gem.material.emissiveIntensity+=(1.5-ud._gem.material.emissiveIntensity)*Math.min(1,dt*6);if(ud._arr)ud._arr.visible=false;if(ud._laser)ud._laser.visible=false;if(ud._strg)ud._strg.position.z+=((ud._strg.userData.z0||0)-ud._strg.position.z)*Math.min(1,dt*8)}}
+   var ar=ud._arr||(ud._arr=(function(){var a=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,1.15,6),new THREE.MeshBasicMaterial({color:0xfff3d0}));a.position.set(0,-.5,.1);if(ud.armL)ud.armL.add(a);return a})());ar.rotation.x=-Math.PI/2+1.45*pl;ar.visible=kk<.62; /* v59: Pfeil bleibt bis zur vollen Loose sichtbar */ /* v57: Ziel-Laser waehrend Zug = Lesbarkeit + Aim-Hilfe */
+   var lz=ud._laser||(ud._laser=(function(){var c=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,11,6),new THREE.MeshBasicMaterial({color:0xfff2a8,transparent:true,opacity:.42,blending:THREE.AdditiveBlending,depthWrite:false}));c.rotation.x=Math.PI/2;c.position.set(0,1.32,5.5);if(!grp.userData.enemy)grp.add(c);return c})());lz.visible=kk<.62}
+  else if(ct3>0){ud.castT=Math.max(0,ct3-dt);var kc=1-ct3/.4,gs=kc<.62?kc/.62:1,sp=kc<.62?0:Math.min(1,(kc-.62)/.16); /* v59 Magier 3-Phasen: Gather (Stab zurueck, Gem haelt Energie, Koerpf holt aus) -> Point (stabiler Stoess in Zielrichtung, Release) -> Follow (zeigt nach, Energie ebbt) */
+   if(kc<.62){ar3.rotation.x=-.25+.95*gs;ar3.rotation.z=-.35*gs;if(ud.armL)ud.armL.rotation.x=-.85*gs;if(ud.body)ud.body.rotation.y=.25*gs}
+   else{ar3.rotation.x=.7-2.65*sp;ar3.rotation.z=-.35*(1-sp);if(ud.armL)ud.armL.rotation.x=-.85*(1-sp*.85);if(ud.body)ud.body.rotation.y=.25*(1-Math.min(1,(kc-.62)*3))}
+   var gm=ud._gem||(ud._gem=grp.getObjectByName('gem'));if(gm){gm.material.emissiveIntensity=kc<.62?1.5+7*(gs*gs*(3-2*gs)):kc<.78?8.5:Math.max(1.5,8.5-((kc-.78)/.22)*7);gm.scale.setScalar(1+(kc<.78?.35*(kc<.62?gs*gs:1):0))}}
+  else{ar3.rotation.x+=((ud.walking?-.55*Math.sin((t||0)*7):-.25)-ar3.rotation.x)*Math.min(1,dt*10);if(ud.walking)ar3.rotation.z=-1.25+.25*Math.sin((t||0)*7);if(ud.body)ud.body.rotation.y+=(0-ud.body.rotation.y)*Math.min(1,dt*10);if(ud._gem)ud._gem.material.emissiveIntensity+=(1.5-ud._gem.material.emissiveIntensity)*Math.min(1,dt*6);if(ud._arr)ud._arr.visible=false;if(ud._laser)ud._laser.visible=false;if(ud._strg)ud._strg.position.z+=((ud._strg.userData.z0||0)-ud._strg.position.z)*Math.min(1,dt*8)}}
  if(ud.legL&&ud.legR){var lw=ud.walking?Math.sin((t||0)*9)*.42:0;ud.legL.rotation.x=lw;ud.legR.rotation.x=-lw}
  if(ud.core){var f=.94+Math.sin(t*11.3)*.05+Math.sin(t*23.7)*.035;ud.core.scale.setScalar(f);
   if(ud.halo){ud.halo.material.opacity=.68+Math.sin(t*13.1)*.22;ud.halo.scale.setScalar((grp===menuStage?1.5:1)*(ud.core.scale.x*1.1))}}
@@ -511,7 +521,7 @@ var CARDS=[
  {t:'Yürek Ateşi',d:'+hızlı atış · +can',f:function(){P.aspd*=.82;P.hp=Math.min(P.maxhp,P.hp+20)}}];
 function banner(sub,txt,cls){wbSub.textContent=sub;wbTxt.textContent=txt;wavebanner.style.color=cls==='boss'?'#ff4a4a':'#ff7a39';wavebanner.classList.add('on');setTimeout(function(){wavebanner.classList.remove('on')},1800)}
 function initRun(){
- if(P){scene.remove(P.grp)}
+ if(P){scene.remove(P.grp);if(P._tele){scene.remove(P._tele);P._tele=null}P.swW=0;P.relT=0} /* v59: Telegraph-Leak bei Restart stoppen */
  if(G){G.enemies.forEach(function(e){scene.remove(e.mesh)});G.orbs.forEach(function(o){scene.remove(o.mesh)});G.shots.forEach(function(s){scene.remove(s.mesh)});G.eshots.forEach(function(o){scene.remove(o.mesh)});G.parts.forEach(function(p){scene.remove(p.mesh)});G.haz.forEach(function(h){scene.remove(h.mesh)})}
  G={enemies:[],shots:[],eshots:[],orbs:[],parts:[],haz:[],wave:1,waveT:0,interT:2.2,bossRef:null,kills:0,gold:0,xp:0,lvl:1,pending:0,spawnT:0,over:false};
  var cls=selCls,cd=CLASSES[cls];
@@ -577,8 +587,10 @@ function icePool(x,z,life,r){var g2=new THREE.Group();
  g2.add(base,edge);g2.position.set(x,0,z);
  var h={mesh:g2,x:x,z:z,r:r-.4,life:life,type:'ice'};scene.add(g2);G.haz.push(h)}
 /* ================= savas ================= */
-function shoot(){var ice=!!CLASSES[P.cls].ice,arwr=P.cls==='okcu',dx=Math.sin(P.face),dz=Math.cos(P.face);
- if(arwr)P.grp.userData.drawT=.38;else P.grp.userData.castT=.34; /* v52: Bogenschuetze zieht, Magier hebt den Stab */
+function shoot(){var arwr=P.cls==='okcu',dx=Math.sin(P.face),dz=Math.cos(P.face);P.relD=[dx,dz];P.swF=P.face; /* v59: Klick startet NUR die Animation — Projektil folgt spaeter exakt im Loose-Frame */
+ if(arwr){P.grp.userData.drawT=.46;P.relT=.285}else{P.grp.userData.castT=.4;P.relT=.248}
+ puff(P.x+dx*(arwr?.6:.9),1.3,P.z+dz*(arwr?.6:.9),arwr?0xd8c8a0:0x8ab8d8,4)}
+function releaseShot(){var ice=!!CLASSES[P.cls].ice,arwr=P.cls==='okcu',dx=P.relD[0],dz=P.relD[1]; /* v59: Sehne/Cast laesst los — Pfeil/Eismax genau jetzt */
  var m=new THREE.Group(),core;
  if(arwr){core=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.95,8),new THREE.MeshBasicMaterial({color:0xffe2b0}));core.rotation.x=Math.PI/2;
   var tip=new THREE.Mesh(new THREE.ConeGeometry(.08,.24,8),new THREE.MeshBasicMaterial({color:0xffffff}));tip.rotation.x=Math.PI/2;tip.position.z=.55;
@@ -591,13 +603,18 @@ function shoot(){var ice=!!CLASSES[P.cls].ice,arwr=P.cls==='okcu',dx=Math.sin(P.
  var fl=new THREE.Sprite(new THREE.SpriteMaterial({map:FLAME,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:.95,color:ice?0x7fc4ff:0xff9a4d}));fl.scale.setScalar(arwr?.8:ice?1.15:1.5);
  m.add(core,fl);m.position.set(P.x+dx*(arwr?.7:1),arwr?1.35:1.5,P.z+dz*(arwr?.7:1));
  G.shots.push({mesh:m,x:m.position.x,z:m.position.z,dx:dx,dz:dz,spd:ice?21:arwr?30:26,dmg:P.atk,life:Math.max(1,P.range/(arwr?30:26)),pierce:P.pierce,ice:ice,r:ice?.34:arwr?.26:.3})}
-function swing(){P.grp.userData.swingT=.28;var fx=Math.sin(P.face),fz=Math.cos(P.z?P.face:P.face);fz=Math.cos(P.face);P.swW=.14;P.swD=[fx,fz]; /* v58: Klick = Ausholen; Schaden folgt erst am Schwung-Scheitelpunkt (.14s) = wenn die Klinge wirklich ankommt */
- puff(P.x+fx*1.4,1.2,P.z+fz*1.4,0xffc060,6)}
+function swing(){var u=P.grp.userData;u.swingT=.3;u.swD2=null;var fx=Math.sin(P.face),fz=Math.cos(P.face);P.swW=.216;P.swD=[fx,fz];P.swF=P.face; /* v59: Kontakt bei k=.72 der .3s Animation */
+ u.swD2=[fx,fz];
+ if(P._tele){scene.remove(P._tele);P._tele=null} /* v59: Reichweiten-Band wie 2D Schwung — Radius = echte Reichweite, Dicke = Schlagkraft */
+ var th=.5+P.atk*.018,tele=new THREE.Mesh(new THREE.RingGeometry(Math.max(.45,P.range-th),P.range,Math.max(24,P.range*30),1,-.95,1.9),new THREE.MeshBasicMaterial({color:0xf2d98c,transparent:true,opacity:.16,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+ tele.rotation.x=-Math.PI/2;tele.rotation.y=P.face-Math.PI/2;tele.position.set(P.x,.42,P.z);scene.add(tele);P._tele=tele;
+ puff(P.x+fx*.6,1.05,P.z+fz*.6,0xc8b080,4)}
 function swingHit(){G.fx=G.fx||[];var fx=P.swD[0],fz=P.swD[1]; /* v58: Guard vor erstem push */
+ if(P._tele){scene.remove(P._tele);P._tele=null} /* v59: Telegraph endet GENAU im Kontakt-Frame */
  for(var i2=0;i2<G.enemies.length;i2++){var e3=G.enemies[i2],dd=Math.hypot(e3.x-P.x,e3.z-P.z);
  if(dd<P.range+e3.r){var dot=(fx*(e3.x-P.x)+fz*(e3.z-P.z))/Math.max(.001,dd);if(dot>.35){hitEnemy(e3,P.atk);e3.x+=fx*.5;e3.z+=fz*.5;e3.mesh.position.set(e3.x,0,e3.z); /* v58: Einschlag GENAU am Gegner — Flash-Kugel + Funken im Kontakt-Frame */
-  var imp=new THREE.Mesh(new THREE.SphereGeometry(.5,10,8),new THREE.MeshBasicMaterial({color:0xfff6c8,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false}));imp.position.set(e3.x,1.35,e3.z);G.fx.push({mesh:imp,t:0,life:.22});puff(e3.x,1.35,e3.z,0xffd27a,6)}}}
- G.fx=G.fx||[];var arc=new THREE.Mesh(new THREE.CircleGeometry(P.range*.8,.9+P.range*40,-.95,1.9),new THREE.MeshBasicMaterial({color:0xffb35a,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));arc.rotation.x=-Math.PI/2;arc.rotation.y=P.face-Math.PI/2;arc.position.set(P.x+Math.sin(P.face)*.6,.45,P.z+Math.cos(P.face)*.6);arc.scale.setScalar(.35);G.fx.push({mesh:arc,t:0,life:.34}) /* v58: Bogen + Schaden + Knockback im selben Kontakt-Frame */}
+  var imp=new THREE.Mesh(new THREE.SphereGeometry(.3+P.atk*.012,10,8),new THREE.MeshBasicMaterial({color:0xfff6c8,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false}));imp.position.set(e3.x,1.35,e3.z);G.fx.push({mesh:imp,t:0,life:.22});puff(e3.x,1.35,e3.z,0xffd27a,Math.min(12,4+Math.round(P.atk/3)))}}} /* v59: Flash-Radius + Funkenzahl skalieren mit Schlagkraft */
+ var th2=.5+P.atk*.018,arc=new THREE.Mesh(new THREE.RingGeometry(Math.max(.45,P.range-th2),P.range,Math.max(24,P.range*30),1,-.95,1.9),new THREE.MeshBasicMaterial({color:0xffb35a,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));arc.rotation.x=-Math.PI/2;arc.rotation.y=P.swF-Math.PI/2;arc.position.set(P.x,.42,P.z);arc.scale.setScalar(.35);G.fx.push({mesh:arc,t:0,life:.3}) /* v59: Kontakt-Band = exakte Reichweite, Dicke = Schlagkraft, dort wo der Schaden landet; Ersatz fuer v58 Bogen */}
 function hitEnemy(e,dmg){e.hp-=dmg;e.mesh.userData.hitFlash=.14;floater(e.x,e.z,'-'+Math.round(dmg),e.hp<=0?'#ff8a5a':'#fff2c0');
  if(P.vamp>0){P.hp=Math.min(P.maxhp,P.hp+dmg*P.vamp)}
  if(e.hp<=0)killEnemy(e)}
@@ -658,7 +675,7 @@ function step(dt){
   if(mouseDown)P.face=Math.atan2(tgt.x-P.x,tgt.z-P.z)}
  P.grp.position.set(P.x,0,P.z);P.grp.rotation.y=P.face;
  if(P.moved)P.walkA+=dt*9;else P.walkA*=.9;
- P.atkT=Math.max(0,P.atkT-dt);if(P.swW>0){P.swW-=dt;if(P.swW<=0)swingHit()} /* v58: Kontakt-Frame = Damage+Knockback+Arc gleichzeitig */
+ P.atkT=Math.max(0,P.atkT-dt);if(P.swW>0){P.swW-=dt;if(P._tele){P._tele.position.set(P.x,.42,P.z);P._tele.rotation.y=P.swF-Math.PI/2;var tk=1-P.swW/.216;P._tele.material.opacity=.16+.55*tk;P._tele.scale.setScalar(.55+.45*tk)}if(P.swW<=0)swingHit()}if(P.relT>0){P.relT-=dt;if(P.relT<=0)releaseShot()} /* v58: Kontakt-Frame = Damage+Knockback+Arc gleichzeitig */
  if(P.atkT<=0&&mouseDown){if(CLASSES[P.cls].melee){swing();P.atkT=P.aspd}else{shoot();P.atkT=P.aspd}}
  if(G.fx)for(var fi=G.fx.length-1;fi>=0;fi--){var fxA=G.fx[fi];fxA.t+=dt;var kk=fxA.t/fxA.life;if(kk>=1){scene.remove(fxA.mesh);G.fx.splice(fi,1);continue}fxA.mesh.scale.setScalar(.35+kk*.7);fxA.mesh.material.opacity=.95*(1-kk);fxA.mesh.material.color.setHex(kk<.12?0xffffff:0xff9440)}
  if((keys.Space)&&P.dashCd<=0&&P.moved){P.dashCd=2.2;P.invuln=.4;P.dashT=.22;P.dashX=mx;P.dashZ=mz}

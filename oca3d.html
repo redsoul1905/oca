@@ -159,11 +159,11 @@ function px(g,S,fn){var id=g.createImageData(S,S);for(var i=0;i<S*S;i++){var p=f
 function lerp(a,b,t){return a+(b-a)*t}
 /* tas: renk + kabarti (bump) + cori/kor kirik isik (emissive) */
 function stoneMaps(base,dark,glow){var S=512,n=fbm(texRND,S,5),c=cvs(S,S),b=cvs(S,S),em=cvs(S,S),g=c.getContext('2d'),bg=b.getContext('2d'),eg=em.getContext('2d'),br=(base>>16&255),bgr=(base>>8&255),bb=(base&255),dr=(dark>>16&255),dg=(dark>>8&255),db=(dark&255);
- px(g,S,function(x,y,i){var v=n[i],sp=(texRND()<.04?.35:0);v=clamp(v+sp,0,1);return[lerp(dr,br,v)|0,lerp(dg,bgr,v)|0,lerp(db,bb,v)|0]});
+ px(g,S,function(x,y,i){var v=Math.pow(n[i],1.55)*.8+.22,sp=(texRND()<.04?.25:0);v=clamp(v+sp,0,1);return[clamp(lerp(dr,br,v)*1.25,0,255)|0,clamp(lerp(dg,bgr,v)*1.25,0,255)|0,clamp(lerp(db,bb,v)*1.25,0,255)|0]});
  px(bg,S,function(x,y,i){var v=n[i]*.7+n[(i*7)%size2(S)]*.3;return[v*255|0,v*255|0,v*255|0]});
- for(var k=0;k<16;k++){var x=texRND()*S,y=texRND()*S,pts=[[x,y]];g.strokeStyle='rgba(0,0,0,.5)';g.lineWidth=1+texRND()*2.6;g.beginPath();g.moveTo(x,y);
+ for(var k=0;k<16;k++){var x=texRND()*S,y=texRND()*S,pts=[[x,y]];g.strokeStyle='rgba(16,22,32,.38)';g.lineWidth=.8+texRND()*1.8;g.beginPath();g.moveTo(x,y);
   for(var s2=0;s2<9;s2++){x+=(texRND()-.5)*80;y+=(texRND()-.5)*80;pts.push([x,y]);g.lineTo(x,y)}g.stroke();
-  if(glow){eg.strokeStyle='rgba(255,122,42,'+(.4+texRND()*.45).toFixed(2)+')';eg.lineWidth=1.4;eg.beginPath();for(var j=0;j<pts.length;j++){if(j)eg.lineTo(pts[j][0],pts[j][1]);else eg.moveTo(pts[j][0],pts[j][1])}eg.stroke()}}
+  if(glow&&k%3===0){eg.strokeStyle='rgba(255,122,42,'+(.22+texRND()*.22).toFixed(2)+')';eg.lineWidth=1.1;eg.beginPath();for(var j=0;j<pts.length;j++){if(j)eg.lineTo(pts[j][0],pts[j][1]);else eg.moveTo(pts[j][0],pts[j][1])}eg.stroke()}}
  return{map:ctex(c,true),bump:ctex(b,false),emis:glow?ctex(em,true):null}}
 function size2(S){return S*S}
 /* kumas: ince dokuma + toz */
@@ -214,21 +214,22 @@ try{renderer=new THREE.WebGLRenderer({antialias:!IS_TOUCH,powerPreference:'high-
 if(renderer){
 renderer.setSize(W,H);renderer.setPixelRatio(Math.min(devicePixelRatio||1,IS_TOUCH?1.5:2));
 renderer.setClearColor(0x0a0e16);
-renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.5;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.65;
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.domElement.id='gl';document.body.appendChild(renderer.domElement);
 var scene=new THREE.Scene();
 scene.fog=new THREE.FogExp2(0x0a0e16,0.008);
 var camera=new THREE.PerspectiveCamera(55,W/H,.1,320);camera.position.set(0,22,32);
 var hemi=new THREE.HemisphereLight(0xb7d6f8,0x2c3850,1.7);scene.add(hemi);
-var moon=new THREE.DirectionalLight(0xd8e6f8,2.4);moon.position.set(16,30,-14);moon.castShadow=true;
+var moon=new THREE.DirectionalLight(0xd8e6f8,2.4);
+var fill=new THREE.DirectionalLight(0xcfe0f5,1.1);fill.position.set(-5,16,12);scene.add(fill);moon.position.set(16,30,-14);moon.castShadow=true;
 moon.shadow.mapSize.set(IS_TOUCH?1024:2048,IS_TOUCH?1024:2048);
 var sc=moon.shadow.camera;sc.left=-38;sc.right=38;sc.top=38;sc.bottom=-38;sc.near=6;sc.far=90;
 moon.shadow.bias=-.0008;moon.shadow.normalBias=.03;scene.add(moon);
 var flameLight=new THREE.PointLight(0xff7a32,70,42,2);scene.add(flameLight);
 /* dokular (tek seferlik) */
 var FLAME=flameTex(),MAXA=renderer.capabilities.getMaxAnisotropy();
-var GST=stoneMaps(0x3c4a66,0x18202f,true);
+var GST=stoneMaps(0x7286a6,0x39485f,true);
 [GST.map,GST.bump,GST.emis].forEach(function(t){t.repeat.set(3,3);t.anisotropy=MAXA});
 var groundMat=new THREE.MeshStandardMaterial({map:GST.map,color:0xa9b6c8,bumpMap:GST.bump,bumpScale:.7,emissiveMap:GST.emis,emissive:0xff6a2a,emissiveIntensity:.4,roughness:.95,metalness:0});
 var ground=new THREE.Mesh(new THREE.CircleGeometry(ARENA+2,96),groundMat);
@@ -285,7 +286,7 @@ var CLASSES={okcu:{t:'Ateş Okçusu',d:'Alev okları · geniş menzil',hp:100,sp
  savasci:{t:'Kor Savaşçısı',d:'Kılıç · yakın dövme · +can',hp:150,spd:9.2,atk:20,aspd:.45,range:3.4,melee:1,robe:0x5a4426,cloak:0x332614,orb:0xffd060,lite:0xffb050,li:85},
  buzyu:{t:'Buz Büyücüsü',d:'Buz mızrakları · yavaşlatır',hp:85,spd:8,atk:13,aspd:.5,range:13.5,ice:1,robe:0x22355c,cloak:0x16223a,orb:0x60b8ff,lite:0x5aa8ff,li:110}};
 var selCls='okcu';try{var qs=localStorage.getItem('oca-cls3d');if(CLASSES[qs])selCls=qs}catch(e){}
-function mkPlayer(cls){cls=cls||'okcu';var g=new THREE.Group(),t=texRND,cd=CLASSES[cls];
+function mkPlayer(cls){cls=cls||'okcu';var g=new THREE.Group(),t=texRND,cd=CLASSES[cls];g.scale.setScalar(1.3);
  var robeMat=new THREE.MeshStandardMaterial({map:ctex(clothCvs(cd.robe,0x1c1012),true),roughness:.8,metalness:0});
  var cloakMat=new THREE.MeshStandardMaterial({map:ctex(clothCvs(cd.cloak,0x120a0e),true),roughness:.85,side:THREE.DoubleSide});
  var skinMat=new THREE.MeshStandardMaterial({color:0xc99a6b,roughness:.65});

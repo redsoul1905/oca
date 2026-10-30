@@ -607,10 +607,10 @@ function releaseShot(){var ice=!!CLASSES[P.cls].ice,arwr=P.cls==='okcu',dx=P.rel
  var fl=new THREE.Sprite(new THREE.SpriteMaterial({map:FLAME,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:.95,color:ice?0x7fc4ff:0xff9a4d}));fl.scale.setScalar(arwr?.8:ice?1.15:1.5);
  m.add(core,fl);m.position.set(P.x+dx*(arwr?.7:1),arwr?1.35:1.5,P.z+dz*(arwr?.7:1));
  G.shots.push({mesh:m,x:m.position.x,z:m.position.z,dx:dx,dz:dz,spd:ice?21:arwr?30:26,dmg:P.atk,life:Math.max(1,P.range/(arwr?30:26)),pierce:P.pierce,ice:ice,r:ice?.34:arwr?.26:.3})}
-function swing(){var u=P.grp.userData;u.swingT=.3;u.swD2=null;var fx=Math.sin(P.face),fz=Math.cos(P.face);P.swW=.216;P.swD=[fx,fz];P.swF=P.face; /* v59: Kontakt bei k=.72 der .3s Animation */
+function swing(){var u=P.grp.userData;u.swingT=.3;u.swD2=null;var fx=Math.sin(P.face),fz=Math.cos(P.face);P.swW=.17;P.swD=[fx,fz];P.swF=P.face; /* v61: Kontakt bei armX~-1.8 = Klinge auf Brusthoehe des Ziels, Durchschwung danach sichtbar */
  u.swD2=[fx,fz];
  if(P._tele){scene.remove(P._tele);P._tele=null} /* v59: Reichweiten-Band wie 2D Schwung — Radius = echte Reichweite, Dicke = Schlagkraft */
- var th=.5+P.atk*.018,tele=new THREE.Mesh(new THREE.RingGeometry(Math.max(.45,P.range-th),P.range,Math.max(24,P.range*30),1,-.95,1.9),new THREE.MeshBasicMaterial({color:0xf2d98c,transparent:true,opacity:.16,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+ var th=.5+P.atk*.018,tele=new THREE.Mesh(new THREE.RingGeometry(Math.max(.45,P.range-th),P.range,Math.max(24,P.range*30),1,-.95,1.9),new THREE.MeshBasicMaterial({color:0xf2d98c,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
  tele.rotation.x=-Math.PI/2;tele.rotation.y=P.face-Math.PI/2;tele.position.set(P.x,.42,P.z);scene.add(tele);P._tele=tele;
  puff(P.x+fx*.6,1.05,P.z+fz*.6,0xc8b080,4)}
 function swingHit(){G.fx=G.fx||[];var fx=P.swD[0],fz=P.swD[1]; /* v58: Guard vor erstem push */
@@ -618,7 +618,7 @@ function swingHit(){G.fx=G.fx||[];var fx=P.swD[0],fz=P.swD[1]; /* v58: Guard vor
  for(var i2=0;i2<G.enemies.length;i2++){var e3=G.enemies[i2],dd=Math.hypot(e3.x-P.x,e3.z-P.z);
  if(dd<P.range+e3.r){var dot=(fx*(e3.x-P.x)+fz*(e3.z-P.z))/Math.max(.001,dd);if(dot>.35){hitEnemy(e3,P.atk);e3.x+=fx*.5;e3.z+=fz*.5;e3.mesh.position.set(e3.x,0,e3.z); /* v58: Einschlag GENAU am Gegner — Flash-Kugel + Funken im Kontakt-Frame */
   var imp=new THREE.Mesh(new THREE.SphereGeometry(.3+P.atk*.012,10,8),new THREE.MeshBasicMaterial({color:0xfff6c8,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false}));imp.position.set(e3.x,1.35,e3.z);G.fx.push({mesh:imp,t:0,life:.22});puff(e3.x,1.35,e3.z,0xffd27a,Math.min(12,4+Math.round(P.atk/3)))}}} /* v59: Flash-Radius + Funkenzahl skalieren mit Schlagkraft */
- var th2=.5+P.atk*.018,arc=new THREE.Mesh(new THREE.RingGeometry(Math.max(.45,P.range-th2),P.range,Math.max(24,P.range*30),1,-.95,1.9),new THREE.MeshBasicMaterial({color:0xffb35a,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));arc.rotation.x=-Math.PI/2;arc.rotation.y=P.swF-Math.PI/2;arc.position.set(P.x,.42,P.z);arc.scale.setScalar(.35);G.fx.push({mesh:arc,t:0,life:.3}) /* v59: Kontakt-Band = exakte Reichweite, Dicke = Schlagkraft, dort wo der Schaden landet; Ersatz fuer v58 Bogen */}
+ var th2=.5+P.atk*.018,arc=new THREE.Mesh(new THREE.RingGeometry(Math.max(.45,P.range-th2),P.range,Math.max(24,P.range*30),1,-.95,1.9),new THREE.MeshBasicMaterial({color:0xffb35a,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));arc.rotation.x=-Math.PI/2;arc.rotation.y=P.swF-Math.PI/2;arc.position.set(P.x,.42,P.z);arc.scale.setScalar(.6);G.fx.push({mesh:arc,t:0,life:.3}) /* v59: Kontakt-Band = exakte Reichweite, Dicke = Schlagkraft, dort wo der Schaden landet; Ersatz fuer v58 Bogen */}
 function hitEnemy(e,dmg){e.hp-=dmg;e.mesh.userData.hitFlash=.14;floater(e.x,e.z,'-'+Math.round(dmg),e.hp<=0?'#ff8a5a':'#fff2c0');
  if(P.vamp>0){P.hp=Math.min(P.maxhp,P.hp+dmg*P.vamp)}
  if(e.hp<=0)killEnemy(e)}
@@ -679,9 +679,9 @@ function step(dt){
   if(mouseDown)P.face=Math.atan2(tgt.x-P.x,tgt.z-P.z)}
  P.grp.position.set(P.x,0,P.z);P.grp.rotation.y=P.face;
  if(P.moved)P.walkA+=dt*9;else P.walkA*=.9;
- P.atkT=Math.max(0,P.atkT-dt);if(P.swW>0){P.swW-=dt;if(P._tele){P._tele.position.set(P.x,.42,P.z);P._tele.rotation.y=P.swF-Math.PI/2;var tk=1-P.swW/.216;P._tele.material.opacity=.16+.55*tk;P._tele.scale.setScalar(.55+.45*tk)}if(P.swW<=0)swingHit()}if(P.relT>0){P.relT-=dt;if(P.relT<=0)releaseShot()} /* v58: Kontakt-Frame = Damage+Knockback+Arc gleichzeitig */
+ P.atkT=Math.max(0,P.atkT-dt);if(P.swW>0){P.swW-=dt;if(P._tele){P._tele.position.set(P.x,.42,P.z);P._tele.rotation.y=P.swF-Math.PI/2;var tk=1-P.swW/.216;P._tele.material.opacity=.22+.6*tk;P._tele.scale.setScalar(.55+.45*tk)}if(P.swW<=0)swingHit()}if(P.relT>0){P.relT-=dt;if(P.relT<=0)releaseShot()} /* v58: Kontakt-Frame = Damage+Knockback+Arc gleichzeitig */
  if(P.atkT<=0&&mouseDown){if(CLASSES[P.cls].melee){swing();P.atkT=P.aspd}else{shoot();P.atkT=P.aspd}}
- if(G.fx)for(var fi=G.fx.length-1;fi>=0;fi--){var fxA=G.fx[fi];fxA.t+=dt;var kk=fxA.t/fxA.life;if(kk>=1){scene.remove(fxA.mesh);G.fx.splice(fi,1);continue}fxA.mesh.scale.setScalar(.35+kk*.7);fxA.mesh.material.opacity=.95*(1-kk);fxA.mesh.material.color.setHex(kk<.12?0xffffff:0xff9440)}
+ if(G.fx)for(var fi=G.fx.length-1;fi>=0;fi--){var fxA=G.fx[fi];fxA.t+=dt;var kk=fxA.t/fxA.life;if(kk>=1){scene.remove(fxA.mesh);G.fx.splice(fi,1);continue}fxA.mesh.scale.setScalar(.6+kk*.45) /* v61: ab Kontakt-Frame sofort gut sichtbar */;fxA.mesh.material.opacity=.95*(1-kk);fxA.mesh.material.color.setHex(kk<.12?0xffffff:0xff9440)}
  if((keys.Space)&&P.dashCd<=0&&P.moved){P.dashCd=2.2;P.invuln=.4;P.dashT=.22;P.dashX=mx;P.dashZ=mz}
  P.dashCd=Math.max(0,P.dashCd-dt);P.invuln=Math.max(0,P.invuln-dt);P.slowT=Math.max(0,(P.slowT||0)-dt);
  if(P.dashT>0){P.dashT-=dt;P.x+=P.dashX*26*dt;P.z+=P.dashZ*26*dt;if(rnd()<.5)puff(P.x,1,P.z,0x9ad8ff,1);resolveOb(P,P.r)}

@@ -591,11 +591,13 @@ function shoot(){var ice=!!CLASSES[P.cls].ice,arwr=P.cls==='okcu',dx=Math.sin(P.
  var fl=new THREE.Sprite(new THREE.SpriteMaterial({map:FLAME,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:.95,color:ice?0x7fc4ff:0xff9a4d}));fl.scale.setScalar(arwr?.8:ice?1.15:1.5);
  m.add(core,fl);m.position.set(P.x+dx*(arwr?.7:1),arwr?1.35:1.5,P.z+dz*(arwr?.7:1));
  G.shots.push({mesh:m,x:m.position.x,z:m.position.z,dx:dx,dz:dz,spd:ice?21:arwr?30:26,dmg:P.atk,life:Math.max(1,P.range/(arwr?30:26)),pierce:P.pierce,ice:ice,r:ice?.34:arwr?.26:.3})}
-function swing(){P.grp.userData.swingT=.28;var fx=Math.sin(P.face),fz=Math.cos(P.z?P.face:P.face);fz=Math.cos(P.face);
+function swing(){P.grp.userData.swingT=.28;var fx=Math.sin(P.face),fz=Math.cos(P.z?P.face:P.face);fz=Math.cos(P.face);P.swW=.14;P.swD=[fx,fz]; /* v58: Klick = Ausholen; Schaden folgt erst am Schwung-Scheitelpunkt (.14s) = wenn die Klinge wirklich ankommt */
+ puff(P.x+fx*1.4,1.2,P.z+fz*1.4,0xffc060,6)}
+function swingHit(){G.fx=G.fx||[];var fx=P.swD[0],fz=P.swD[1]; /* v58: Guard vor erstem push */
  for(var i2=0;i2<G.enemies.length;i2++){var e3=G.enemies[i2],dd=Math.hypot(e3.x-P.x,e3.z-P.z);
- if(dd<P.range+e3.r){var dot=(fx*(e3.x-P.x)+fz*(e3.z-P.z))/Math.max(.001,dd);if(dot>.35){hitEnemy(e3,P.atk);e3.x+=fx*.5;e3.z+=fz*.5;e3.mesh.position.set(e3.x,0,e3.z)}}}
- puff(P.x+fx*1.4,1.2,P.z+fz*1.4,0xffc060,6);
- G.fx=G.fx||[];var arc=new THREE.Mesh(new THREE.CircleGeometry(P.range*.8,.9+P.range*40,-.95,1.9),new THREE.MeshBasicMaterial({color:0xffb35a,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));arc.rotation.x=-Math.PI/2;arc.rotation.y=P.face-Math.PI/2;arc.position.set(P.x+Math.sin(P.face)*.6,.45,P.z+Math.cos(P.face)*.6);arc.scale.setScalar(.35);G.fx.push({mesh:arc,t:0,life:.34}) /* v50b: Schwungbogen linger sichtbar */}
+ if(dd<P.range+e3.r){var dot=(fx*(e3.x-P.x)+fz*(e3.z-P.z))/Math.max(.001,dd);if(dot>.35){hitEnemy(e3,P.atk);e3.x+=fx*.5;e3.z+=fz*.5;e3.mesh.position.set(e3.x,0,e3.z); /* v58: Einschlag GENAU am Gegner — Flash-Kugel + Funken im Kontakt-Frame */
+  var imp=new THREE.Mesh(new THREE.SphereGeometry(.5,10,8),new THREE.MeshBasicMaterial({color:0xfff6c8,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false}));imp.position.set(e3.x,1.35,e3.z);G.fx.push({mesh:imp,t:0,life:.22});puff(e3.x,1.35,e3.z,0xffd27a,6)}}}
+ G.fx=G.fx||[];var arc=new THREE.Mesh(new THREE.CircleGeometry(P.range*.8,.9+P.range*40,-.95,1.9),new THREE.MeshBasicMaterial({color:0xffb35a,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));arc.rotation.x=-Math.PI/2;arc.rotation.y=P.face-Math.PI/2;arc.position.set(P.x+Math.sin(P.face)*.6,.45,P.z+Math.cos(P.face)*.6);arc.scale.setScalar(.35);G.fx.push({mesh:arc,t:0,life:.34}) /* v58: Bogen + Schaden + Knockback im selben Kontakt-Frame */}
 function hitEnemy(e,dmg){e.hp-=dmg;e.mesh.userData.hitFlash=.14;floater(e.x,e.z,'-'+Math.round(dmg),e.hp<=0?'#ff8a5a':'#fff2c0');
  if(P.vamp>0){P.hp=Math.min(P.maxhp,P.hp+dmg*P.vamp)}
  if(e.hp<=0)killEnemy(e)}
@@ -656,7 +658,7 @@ function step(dt){
   if(mouseDown)P.face=Math.atan2(tgt.x-P.x,tgt.z-P.z)}
  P.grp.position.set(P.x,0,P.z);P.grp.rotation.y=P.face;
  if(P.moved)P.walkA+=dt*9;else P.walkA*=.9;
- P.atkT=Math.max(0,P.atkT-dt);
+ P.atkT=Math.max(0,P.atkT-dt);if(P.swW>0){P.swW-=dt;if(P.swW<=0)swingHit()} /* v58: Kontakt-Frame = Damage+Knockback+Arc gleichzeitig */
  if(P.atkT<=0&&mouseDown){if(CLASSES[P.cls].melee){swing();P.atkT=P.aspd}else{shoot();P.atkT=P.aspd}}
  if(G.fx)for(var fi=G.fx.length-1;fi>=0;fi--){var fxA=G.fx[fi];fxA.t+=dt;var kk=fxA.t/fxA.life;if(kk>=1){scene.remove(fxA.mesh);G.fx.splice(fi,1);continue}fxA.mesh.scale.setScalar(.35+kk*.7);fxA.mesh.material.opacity=.95*(1-kk);fxA.mesh.material.color.setHex(kk<.12?0xffffff:0xff9440)}
  if((keys.Space)&&P.dashCd<=0&&P.moved){P.dashCd=2.2;P.invuln=.4;P.dashT=.22;P.dashX=mx;P.dashZ=mz}

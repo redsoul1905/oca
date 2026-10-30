@@ -465,8 +465,8 @@ function draw(dt){
     ud.halo.scale.setScalar(1+Math.sin(clockT*4)*.1);
     P.grp.children[0].material.emissiveIntensity=.7+Math.sin(clockT*13)*.3;
     flameLight.position.set(P.x,1.4,P.z);flameLight.intensity=58+Math.sin(clockT*17)*10;}
-  /* yaratık animasyonları */
-  for(var i=0;i<G.enemies.length;i++){var e=G.enemies[i],ud2=e.mesh.userData;
+  /* yaratık animasyonları (G ancak initRun'da oluşur -> menude guard sart, v29 deseni) */
+  if(G) for(var i=0;i<G.enemies.length;i++){var e=G.enemies[i],ud2=e.mesh.userData;
     if(e.kind==='slime'&&ud2.body){var sq=1+Math.sin(clockT*6+i)*.14;ud2.body.scale.set(1+ (1-sq)*.5,sq*.72,1+(1-sq)*.5);}
     if(e.kind==='bat'){if(ud2.wl){ud2.wl.rotation.z=-.35+Math.sin(clockT*16+i)*.9;ud2.wr.rotation.z=Math.PI+.35-Math.sin(clockT*16+i)*.9;}
       e.mesh.position.y=1.15+Math.sin(clockT*3+i)*.2;}

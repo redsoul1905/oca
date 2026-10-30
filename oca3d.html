@@ -288,8 +288,8 @@ var MAT={
 function S3(m){m.castShadow=true;return m}
 /* alev sprite seti (meales/ateş nesnelerine eklenir) */
 function addFlame(parent,x,y,z,scl){var arr=[];
- for(var i=0;i<3;i++){var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:FLAME,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:.45,color:i===0?0xffd2a2:i===1?0xffab52:0xff6a2e}));
-  sp.position.set(x+(i-1)*.03,y+i*.09,z);sp.scale.setScalar(scl*(1-i*.22));parent.add(sp);arr.push(sp)}
+ for(var i=0;i<3;i++){var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:FLAME,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:.3,color:i===0?0xffb877:i===1?0xffab52:0xff6a2e}));
+  sp.position.set(x+(i-1)*.03,y+i*.09,z);sp.scale.setScalar(scl*.8*(1-i*.22));parent.add(sp);arr.push(sp)}
  return arr}
 /* ================= KARAKTER FABRIKALARI =================
    her karakter: parca hiyerarsisi + userData anim ref'lari */

@@ -218,19 +218,19 @@ renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.domElement.id='gl';document.body.appendChild(renderer.domElement);
 var scene=new THREE.Scene();
-scene.fog=new THREE.FogExp2(0x0a0e16,0.010);
+scene.fog=new THREE.FogExp2(0x0a0e16,0.008);
 var camera=new THREE.PerspectiveCamera(55,W/H,.1,320);camera.position.set(0,22,32);
-var hemi=new THREE.HemisphereLight(0x9fc4f2,0x242e42,1.2);scene.add(hemi);
-var moon=new THREE.DirectionalLight(0xbdd4f0,1.7);moon.position.set(16,30,-14);moon.castShadow=true;
+var hemi=new THREE.HemisphereLight(0xb7d6f8,0x2c3850,1.7);scene.add(hemi);
+var moon=new THREE.DirectionalLight(0xd8e6f8,2.4);moon.position.set(16,30,-14);moon.castShadow=true;
 moon.shadow.mapSize.set(IS_TOUCH?1024:2048,IS_TOUCH?1024:2048);
 var sc=moon.shadow.camera;sc.left=-38;sc.right=38;sc.top=38;sc.bottom=-38;sc.near=6;sc.far=90;
 moon.shadow.bias=-.0008;moon.shadow.normalBias=.03;scene.add(moon);
-var flameLight=new THREE.PointLight(0xff7a32,95,42,2);scene.add(flameLight);
+var flameLight=new THREE.PointLight(0xff7a32,70,42,2);scene.add(flameLight);
 /* dokular (tek seferlik) */
 var FLAME=flameTex(),MAXA=renderer.capabilities.getMaxAnisotropy();
 var GST=stoneMaps(0x3c4a66,0x18202f,true);
 [GST.map,GST.bump,GST.emis].forEach(function(t){t.repeat.set(3,3);t.anisotropy=MAXA});
-var groundMat=new THREE.MeshStandardMaterial({map:GST.map,bumpMap:GST.bump,bumpScale:.7,emissiveMap:GST.emis,emissive:0xff6a2a,emissiveIntensity:.85,roughness:.95,metalness:0});
+var groundMat=new THREE.MeshStandardMaterial({map:GST.map,color:0xa9b6c8,bumpMap:GST.bump,bumpScale:.7,emissiveMap:GST.emis,emissive:0xff6a2a,emissiveIntensity:.4,roughness:.95,metalness:0});
 var ground=new THREE.Mesh(new THREE.CircleGeometry(ARENA+2,96),groundMat);
 ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 var ring=new THREE.Mesh(new THREE.TorusGeometry(ARENA,.12,8,96),new THREE.MeshStandardMaterial({color:0xff7a39,emissive:0xff5a20,emissiveIntensity:1.8}));
@@ -696,7 +696,7 @@ function draw(dt){clockT+=dt;
  /* alev isigi */
  if(state==='menu'){var mhy=menuStage.userData.hero;flameLight.position.set(mhy.position.x,2,mhy.position.z);
   flameLight.intensity=PLI+Math.sin(t*11)*5+Math.sin(t*23)*3}
- else if(P){flameLight.position.set(P.x+Math.sin(P.face)*.68,1.8,P.z+Math.cos(P.face)*.68);
+ else if(P){flameLight.position.set(P.x-Math.sin(P.face)*1.4,2.9,P.z-Math.cos(P.face)*1.4);
   flameLight.intensity=PLI+Math.sin(t*11)*5+Math.sin(t*23)*3}
  /* menü kahramani + fener alevleri */
  if(menuStage.visible){var hero=menuStage.userData.hero;hero.rotation.y+=dt*.25;heroAnim(hero,t,dt);

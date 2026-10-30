@@ -241,7 +241,7 @@ function initRun(){
   /* eski varlıkları temizle */
   if(P){scene.remove(P.grp);}
   if(G){[G.enemies,G.shots,G.eshots,G.orbs,G.parts,G.haz].forEach(function(a){a.forEach(function(x){scene.remove(x.mesh);});});}
-  P={grp:mkPlayer(),x:0,z:0,hp:100,maxhp:100,spd:8.4,atk:12,aspd:0.42,atkT:0,range:11.5,pierce:0,
+  P={grp:mkPlayer(),x:0,z:0,r:.75,hp:100,maxhp:100,spd:8.4,atk:12,aspd:0.42,atkT:0,range:11.5,pierce:0, /* r fehlte -> NaN Kontakt-Check, kein Schaden */
      invuln:0,dashT:0,dashCd:0,dashCdMax:2.4,killHeal:0,slowT:0,face:0};
   scene.add(P.grp);
   G={enemies:[],shots:[],eshots:[],orbs:[],parts:[],haz:[],

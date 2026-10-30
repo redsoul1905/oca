@@ -169,7 +169,10 @@ function stoneMaps(base,dark,glow){var S=1024,n=fbm(texRND,S,6),c=cvs(S,S),b=cvs
   bg.strokeStyle='rgba(0,0,0,.85)';bg.lineWidth=3.4;bg.strokeRect(tx+1,ty+1,tile-2,tile-2);
   bg.strokeStyle='rgba(255,255,255,.5)';bg.lineWidth=1;bg.strokeRect(tx+4,ty+4,tile-8,tile-8);
   g.strokeStyle='rgba(150,165,190,.10)';g.lineWidth=1;g.strokeRect(tx+3,ty+3,tile-6,tile-6);
-  if(glow&&(((tx/tile)+(ty/tile))%2===0)){eg.strokeStyle='rgba(255,150,70,'+(.12+texRND()*.1).toFixed(2)+')';eg.lineWidth=1.7;eg.beginPath();var y0=ty+tile;eg.moveTo(tx+4,y0);for(var kx=tx+4;kx<tx+tile-4;kx+=22)eg.lineTo(kx,y0+(texRND()*3-1.5));eg.moveTo(tx+tile,ty+4);for(var ky2=ty+4;ky2<ty+tile-4;ky2+=22)eg.lineTo(tx+tile+(texRND()*3-1.5),ky2);eg.stroke()}
+  if(glow&&(((tx/tile)+(ty/tile))%2===0)){var pts=[];var y0=ty+tile;for(var kx=tx+4;kx<=tx+tile-4;kx+=22)pts.push([kx,y0+(texRND()*3-1.5)]);var pts2=[];for(var ky2=ty+4;ky2<=ty+tile-4;ky2+=22)pts2.push([tx+tile+(texRND()*3-1.5),ky2]);
+ function segs(p){if(p.length<2)return;eg.beginPath();eg.moveTo(p[0][0],p[0][1]);for(var q=1;q<p.length;q++)eg.lineTo(p[q][0],p[q][1]);eg.stroke()}
+ eg.strokeStyle='rgba(255,120,40,.10)';eg.lineWidth=6;segs(pts);segs(pts2);
+ eg.strokeStyle='rgba(255,175,95,'+(.3+texRND()*.12).toFixed(2)+')';eg.lineWidth=1.5;segs(pts);segs(pts2);}
   if(texRND()<.5){var hx=tx+10+texRND()*(tile-20),hy=ty+10+texRND()*(tile-20);g.strokeStyle='rgba(12,16,24,.22)';g.lineWidth=1.2;g.beginPath();g.moveTo(hx,hy);g.lineTo(hx+10+texRND()*30,hy+(texRND()*10-5));g.stroke()}
  }}
 
@@ -240,7 +243,7 @@ var flameLight=new THREE.PointLight(0xff7a32,70,42,2);scene.add(flameLight);
 var FLAME=flameTex(),MAXA=renderer.capabilities.getMaxAnisotropy();
 var GST=stoneMaps(0x96a8c4,0x27324a,true);
 [GST.map,GST.bump,GST.emis].forEach(function(t){t.repeat.set(3,3);t.anisotropy=MAXA});
-var groundMat=new THREE.MeshStandardMaterial({map:GST.map,color:0xffffff,bumpMap:GST.bump,bumpScale:1.3,emissiveMap:GST.emis,emissive:0xff6a2a,emissiveIntensity:.4,roughness:.95,metalness:0});
+var groundMat=new THREE.MeshStandardMaterial({map:GST.map,color:0xffffff,bumpMap:GST.bump,bumpScale:1.3,emissiveMap:GST.emis,emissive:0xff7a3a,emissiveIntensity:.75,roughness:.95,metalness:0});
 var ground=new THREE.Mesh(new THREE.CircleGeometry(ARENA+2,360),groundMat);
 ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 var ring=new THREE.Mesh(new THREE.TorusGeometry(ARENA,.12,200,360),new THREE.MeshStandardMaterial({color:0xff7a39,emissive:0xff5a20,emissiveIntensity:1.8}));

@@ -9,6 +9,7 @@
 <link rel="icon" href="./favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <style>
+.clsrow{display:flex;gap:8px;margin:2px 0 10px}.ccard{flex:1;text-align:center;padding:9px 6px;border:1px solid rgba(255,255,255,.14);border-radius:10px;cursor:pointer;background:rgba(255,255,255,.03);transition:border-color .15s,box-shadow .15s}.ccard b{display:block}.ccard span{font-size:11px;opacity:.75;display:block;margin-top:3px}.ccard.sel{border-color:#ff7a39;box-shadow:0 0 14px rgba(255,122,57,.35);background:rgba(255,122,57,.08)}
 :root{--bg:#0a0d13;--ink:#e8e2d5;--acc:#ff7a39;--acc2:#39d0e8;--warn:#ff5a5a;--good:#5ad08a}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:system-ui,"Segoe UI",Roboto,Arial,sans-serif;user-select:none}
@@ -87,6 +88,11 @@ button.mode.pri{border-color:rgba(255,122,57,.6);background:linear-gradient(120d
    <div class="flamebar"></div>
   </div>
   <div></div>
+  <div class="clsrow" id="clsrow">
+   <div class="ccard sel" data-cls="okcu"><b>🔥</b><b data-i18n="Ateş Okçusu">Ateş Okçusu</b><span data-i18n="Alev okları · geniş menzil">Alev okları · geniş menzil</span></div>
+   <div class="ccard" data-cls="savasci"><b>⚔️</b><b data-i18n="Kor Savaşçısı">Kor Savaşçısı</b><span data-i18n="Kılıç · yakın dövme · +can">Kılıç · yakın dövme · +can</span></div>
+   <div class="ccard" data-cls="buzyu"><b>❄️</b><b data-i18n="Buz Büyücüsü">Buz Büyücüsü</b><span data-i18n="Buz mızrakları · yavaşlatır">Buz mızrakları · yavaşlatır</span></div>
+  </div>
   <div class="modes">
    <button id="startBtn" class="mode pri">
     <span class="mico">🔥</span>
@@ -117,14 +123,14 @@ var TKEY='oca-lang';function getLang(){try{return localStorage.getItem(TKEY)||'t
 var lang=getLang();
 function applyTheme(){var d=document.documentElement.style;d.setProperty('--acc',lang==='tr'?'#ff7a39':'#ff7a39')}
 applyTheme();
-if('serviceWorker' in navigator){var url='./oca-sw.js?nocache='+Date.now();navigator.serviceWorker.register(url,{scope:'./'}).then(function(r){if(r.waiting)r.waiting.postMessage('SKIP_WAITING')}).catch(function(err){var f=document.getElementById('fatal');f.style.display='flex';f.textContent='Oyun yüklenemedi ('+err.message+'). Hard refresh dene (Ctrl+Shift+R).';});
-navigator.serviceWorker.addEventListener('controllerchange',function(){window.location.reload()});
+if('serviceWorker' in navigator){var url='./oca-sw.js';navigator.serviceWorker.register(url,{scope:'./'}).then(function(r){if(r.waiting)r.waiting.postMessage('SKIP_WAITING')}).catch(function(err){var f=document.getElementById('fatal');f.style.display='flex';f.textContent='Oyun yüklenemedi ('+err.message+'). Hard refresh dene (Ctrl+Shift+R).';});
+/* v38: controllerchange-reload entfernt — war der Endlos-Loop (nocache-Reg -> neuer SW -> claim -> reload -> neuere Reg...) */
 if(navigator.serviceWorker.ready)navigator.serviceWorker.ready.then(function(r){if(r.active)r.active.postMessage('PING')}).catch(function(){});}
 </script>
 <script>
 'use strict';
 /* ================= i18n ================= */
-var DE={'Seviye!':'Stufe!','Gelişim Seç':'Wähle deine Stärkung','Devam':'Weiter','Buz Kalhanı':'Eiskalte Mauer','Ateş Fırtınası':'Sturm der Finsternis','Avcı İçgüdüsü':'Jägerinstinkt','Menzil Ustalığı':'Meisterschaft der Bahn','Demir Çekirdek':'Eiserner Kern','Yürek Ateşi':'Flammenherz','Duraklatıldı':'Pausiert','Dalga':'Welle','Can':'Leben','Kesim':'Kills','Altın':'Gold','Süre':'Zeit','Oyun Bitti':'Game Over','Tekrar Dene':'Nochmal versuchen','Seviyeye yükseldin!':'LevelUp','Şef':'Boss','Çöl Çarıhçısı':'Wüstenschinder','Sarp Muhafızı':'Wächter der Klippe','Kor Golem':'Glut-Golem','Kor Yüreği':'Flammenherz','HAREKET':'BEWEGUNG','NİŞAN & ATEŞ':'ZIELEN & FEUERN','ATILMA (Buz Kalkanı)':'DASH (Eisschild)','DURAKLAT':'PAUSE','NASIL OYNANIR?':'SO WIRD GESPIELT','Menüye dön':'Zurück zum Menü','Sonsuz Mod — 3B':'Endlos-Modus — 3D','Bitmeyen dalgalar · her 5. dalgada bir Şef':'Endlose Wellen · jeder 5. Welle ein Boss','2B Klasik Sürüm':'Klassische 2D-Version','Aynı oyun ruhu — mobil dokunmatik destekli':'Gleicher Spielgeist — mit Touch-Steuerung','Ateşini taşı. Karanlığa inat son alev sen ol.':'Trage deine Flamme. Sei die letzte Flamme gegen die Dunkelheit.'};
+var DE={'Seviye!':'Stufe!','Gelişim Seç':'Wähle deine Stärkung','Devam':'Weiter','Buz Kalhanı':'Eiskalte Mauer','Ateş Fırtınası':'Sturm der Finsternis','Avcı İçgüdüsü':'Jägerinstinkt','Menzil Ustalığı':'Meisterschaft der Bahn','Demir Çekirdek':'Eiserner Kern','Yürek Ateşi':'Flammenherz','Duraklatıldı':'Pausiert','Dalga':'Welle','Can':'Leben','Kesim':'Kills','Altın':'Gold','Süre':'Zeit','Oyun Bitti':'Game Over','Tekrar Dene':'Nochmal versuchen','Seviyeye yükseldin!':'LevelUp','Şef':'Boss','Çöl Çarıhçısı':'Wüstenschinder','Sarp Muhafızı':'Wächter der Klippe','Kor Golem':'Glut-Golem','Kor Yüreği':'Flammenherz','HAREKET':'BEWEGUNG','NİŞAN & ATEŞ':'ZIELEN & FEUERN','ATILMA (Buz Kalkanı)':'DASH (Eisschild)','DURAKLAT':'PAUSE','NASIL OYNANIR?':'SO WIRD GESPIELT','Menüye dön':'Zurück zum Menü','Sonsuz Mod — 3B':'Endlos-Modus — 3D','Bitmeyen dalgalar · her 5. dalgada bir Şef':'Endlose Wellen · jeder 5. Welle ein Boss','2B Klasik Sürüm':'Klassische 2D-Version','Aynı oyun ruhu — mobil dokunmatik destekli':'Gleicher Spielgeist — mit Touch-Steuerung','Ateşini taşı. Karanlığa inat son alev sen ol.':'Trage deine Flamme. Sei die letzte Flamme gegen die Dunkelheit.', "%10 +hasar · %20 savunma": "%10 mehr Schaden · %20 Verteidigung", "%25 +hasar · +hız": "%25 mehr Schaden · +Tempo", "%30 menzil · +duman": "%30 Reichweite · +Durchschlag", "+can · can kaçma": "+Leben · Lebensraub", "+hızlı atış · +can": "Schnellere Angriffe · +Leben", "Hasar %25 ↓ · 3 sn Buz Kalkanı": "%25 weniger Schaden · 3 s Eisschild", "NİŞAN & ATEŞ": "ZIEL & FEUER", "Ateş Okçusu": "Feuerbogenschütze", "Kor Savaşçısı": "Glutkrieger", "Buz Büyücüsü": "Eismagier", "Alev okları · geniş menzil": "Flammenpfeile · große Reichweite", "Kılıç · yakın dövme · +can": "Schwert · Nahkampf · +Leben", "Buz mızrakları · yavaşlatır": "Eisspeere · verlangsamt", "Çöl Çarıhçısı": "Wüstenreiter", "Sarp Muhafızı": "Felswächter", "Kor Golem": "Glutgolem", "Kor Yüreği": "Glutherz"};
 function L(s){return lang==='de'?(DE[s]||s):s}
 function applyI18n(){document.querySelectorAll('[data-i18n]').forEach(function(el){el.textContent=L(el.getAttribute('data-i18n'))});document.getElementById('langBtn').textContent='Dil: '+(lang==='tr'?'Türkçe':'Deutsch')}
 /* ================= yardimcilar ================= */
@@ -208,23 +214,23 @@ try{renderer=new THREE.WebGLRenderer({antialias:!IS_TOUCH,powerPreference:'high-
 if(renderer){
 renderer.setSize(W,H);renderer.setPixelRatio(Math.min(devicePixelRatio||1,IS_TOUCH?1.5:2));
 renderer.setClearColor(0x0a0e16);
-renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.3;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.5;
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.domElement.id='gl';document.body.appendChild(renderer.domElement);
 var scene=new THREE.Scene();
-scene.fog=new THREE.FogExp2(0x0a0e16,0.016);
+scene.fog=new THREE.FogExp2(0x0a0e16,0.010);
 var camera=new THREE.PerspectiveCamera(55,W/H,.1,320);camera.position.set(0,22,32);
-var hemi=new THREE.HemisphereLight(0x8fb4e8,0x1c2233,.85);scene.add(hemi);
-var moon=new THREE.DirectionalLight(0xa8c0e0,1.15);moon.position.set(16,30,-14);moon.castShadow=true;
+var hemi=new THREE.HemisphereLight(0x9fc4f2,0x242e42,1.2);scene.add(hemi);
+var moon=new THREE.DirectionalLight(0xbdd4f0,1.7);moon.position.set(16,30,-14);moon.castShadow=true;
 moon.shadow.mapSize.set(IS_TOUCH?1024:2048,IS_TOUCH?1024:2048);
 var sc=moon.shadow.camera;sc.left=-38;sc.right=38;sc.top=38;sc.bottom=-38;sc.near=6;sc.far=90;
 moon.shadow.bias=-.0008;moon.shadow.normalBias=.03;scene.add(moon);
-var flameLight=new THREE.PointLight(0xff7a32,62,32,2);scene.add(flameLight);
+var flameLight=new THREE.PointLight(0xff7a32,95,42,2);scene.add(flameLight);
 /* dokular (tek seferlik) */
 var FLAME=flameTex(),MAXA=renderer.capabilities.getMaxAnisotropy();
-var GST=stoneMaps(0x2c3547,0x131a26,true);
-[GST.map,GST.bump,GST.emis].forEach(function(t){t.repeat.set(5,5);t.anisotropy=MAXA});
-var groundMat=new THREE.MeshStandardMaterial({map:GST.map,bumpMap:GST.bump,bumpScale:.5,emissiveMap:GST.emis,emissive:0xff6a2a,emissiveIntensity:1.25,roughness:.95,metalness:0});
+var GST=stoneMaps(0x3c4a66,0x18202f,true);
+[GST.map,GST.bump,GST.emis].forEach(function(t){t.repeat.set(3,3);t.anisotropy=MAXA});
+var groundMat=new THREE.MeshStandardMaterial({map:GST.map,bumpMap:GST.bump,bumpScale:.7,emissiveMap:GST.emis,emissive:0xff6a2a,emissiveIntensity:.85,roughness:.95,metalness:0});
 var ground=new THREE.Mesh(new THREE.CircleGeometry(ARENA+2,96),groundMat);
 ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 var ring=new THREE.Mesh(new THREE.TorusGeometry(ARENA,.12,8,96),new THREE.MeshStandardMaterial({color:0xff7a39,emissive:0xff5a20,emissiveIntensity:1.8}));
@@ -275,9 +281,13 @@ function addFlame(parent,x,y,z,scl){var arr=[];
 /* ================= KARAKTER FABRIKALARI =================
    her karakter: parca hiyerarsisi + userData anim ref'lari */
 /* --- Player: huďlu alev büyücüsü, asan topu --- */
-function mkPlayer(){var g=new THREE.Group(),t=texRND;
- var robeMat=new THREE.MeshStandardMaterial({map:ctex(clothCvs(0x4a2426,0x2a1214),true),roughness:.8,metalness:0});
- var cloakMat=new THREE.MeshStandardMaterial({map:ctex(clothCvs(0x33191c,0x1d0d10),true),roughness:.85,side:THREE.DoubleSide});
+var CLASSES={okcu:{t:'Ateş Okçusu',d:'Alev okları · geniş menzil',hp:100,spd:8.4,atk:12,aspd:.42,range:11.5,robe:0x4a2426,cloak:0x33191c,orb:0xffa040,lite:0xff7a32,li:95},
+ savasci:{t:'Kor Savaşçısı',d:'Kılıç · yakın dövme · +can',hp:150,spd:9.2,atk:20,aspd:.45,range:3.4,melee:1,robe:0x5a4426,cloak:0x332614,orb:0xffd060,lite:0xffb050,li:85},
+ buzyu:{t:'Buz Büyücüsü',d:'Buz mızrakları · yavaşlatır',hp:85,spd:8,atk:13,aspd:.5,range:13.5,ice:1,robe:0x22355c,cloak:0x16223a,orb:0x60b8ff,lite:0x5aa8ff,li:110}};
+var selCls='okcu';try{var qs=localStorage.getItem('oca-cls3d');if(CLASSES[qs])selCls=qs}catch(e){}
+function mkPlayer(cls){cls=cls||'okcu';var g=new THREE.Group(),t=texRND,cd=CLASSES[cls];
+ var robeMat=new THREE.MeshStandardMaterial({map:ctex(clothCvs(cd.robe,0x1c1012),true),roughness:.8,metalness:0});
+ var cloakMat=new THREE.MeshStandardMaterial({map:ctex(clothCvs(cd.cloak,0x120a0e),true),roughness:.85,side:THREE.DoubleSide});
  var skinMat=new THREE.MeshStandardMaterial({color:0xc99a6b,roughness:.65});
  var lg=new THREE.BoxGeometry(.16,.5,.17);lg.translate(0,-.25,0);
  var legL=S3(new THREE.Mesh(lg,robeMat));legL.position.set(.17,.56,0);
@@ -295,11 +305,17 @@ function mkPlayer(){var g=new THREE.Group(),t=texRND;
  var armL=S3(new THREE.Mesh(ag,robeMat));armL.position.set(-.36,1.22,0);armL.rotation.z=.3;armL.rotation.x=.15;
  var armR=S3(new THREE.Mesh(ag,robeMat));armR.position.set(.36,1.22,0);armR.rotation.z=-1.25;armR.rotation.x=-.25;
  var hand=new THREE.Mesh(new THREE.SphereGeometry(.07,8,6),skinMat);hand.position.set(.62,1.44,.1);
- var orb=new THREE.Mesh(new THREE.SphereGeometry(.17,16,12),new THREE.MeshStandardMaterial({color:0x3a1608,emissive:0xffa040,emissiveIntensity:2.6,roughness:.3}));orb.position.set(.68,1.56,.14);
+ var orb;if(cd.melee){orb=new THREE.Group();
+ var bl=new THREE.Mesh(new THREE.BoxGeometry(.09,1.05,.2),MAT.metal);bl.position.y=.55;
+ var cr=new THREE.Mesh(new THREE.BoxGeometry(.34,.07,.07),MAT.metal);cr.position.y=.05;
+ var gb=new THREE.Mesh(new THREE.SphereGeometry(.06,8,6),new THREE.MeshStandardMaterial({color:0x241206,emissive:cd.orb,emissiveIntensity:2.2}));gb.position.y=-.06;
+ orb.add(bl,cr,gb)}
+ else orb=new THREE.Mesh(new THREE.SphereGeometry(.17,16,12),new THREE.MeshStandardMaterial({color:0x10161f,emissive:cd.orb,emissiveIntensity:2.8,roughness:.25,metalness:cd.ice?.6:0}));
+ orb.position.set(.68,1.56,.14);
  var halo=new THREE.Sprite(new THREE.SpriteMaterial({map:FLAME,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:.75,color:0xffc070}));halo.position.copy(orb.position);halo.scale.setScalar(.9);
  var flames=addFlame(g,.68,1.66,.14,.55);
  g.add(legL,legR,torso,belt,cloak,shoulderL,shoulderR,head,hood,eL,eR,armL,armR,hand,orb,halo);
- g.userData={body:torso,core:orb,halo:halo,flames:flames,legL:legL,legR:legR,armL:armL};
+ g.userData={body:torso,core:orb,halo:halo,flames:flames,legL:legL,legR:legR,armL:armR,armR:armR};
  return g}
 /* --- Slime: jel kabuk + cekirdek + damlalar + parlak gozler --- */
 function mkSlime(){var g=new THREE.Group();
@@ -432,9 +448,12 @@ var menuStage=new THREE.Group();scene.add(menuStage);
   var fl=addFlame(bg2,0,1.42,0,.5);bg2.userData.flames=fl;
   bg2.position.set(Math.cos(a)*2.8,0,Math.sin(a)*2.8);bg2.traverse(function(o){if(o.isMesh)o.castShadow=true});
   menuStage.add(bg2);menuStage.userData['b'+i]=bg2}
- var hero=mkPlayer();hero.position.y=.5;hero.rotation.y=-.5;menuStage.add(hero);menuStage.userData.hero=hero;
+ var hero=mkPlayer(selCls);hero.position.y=.5;hero.rotation.y=-.5;menuStage.add(hero);menuStage.userData.hero=hero;
 })();
 function heroAnim(grp,t,dt){var ud=grp.userData;
+ var ar3=ud.armR,sw=ud.swingT||0;
+ if(ar3){if(sw>0){ud.swingT=Math.max(0,sw-dt);ar3.rotation.x=-.25-Math.sin((1-sw/.28)*Math.PI)*1.9}else{ar3.rotation.x+=((ud.walking?-.55*Math.sin((t||0)*7):-.25)-ar3.rotation.x)*Math.min(1,dt*10);if(ud.walking)ar3.rotation.z=-1.25+.25*Math.sin((t||0)*7)}}
+ if(ud.legL&&ud.legR){var lw=ud.walking?Math.sin((t||0)*9)*.42:0;ud.legL.rotation.x=lw;ud.legR.rotation.x=-lw}
  if(ud.core){var f=.94+Math.sin(t*11.3)*.05+Math.sin(t*23.7)*.035;ud.core.scale.setScalar(f);
   if(ud.halo){ud.halo.material.opacity=.68+Math.sin(t*13.1)*.22;ud.halo.scale.setScalar((grp===menuStage?1.5:1)*(ud.core.scale.x*1.1))}}
  if(ud.flames)for(var i=0;i<ud.flames.length;i++){var s=ud.flames[i];s.scale.setScalar(s.userData&&s.userData.base?s.userData.base*(1+Math.sin(t*17+i*2.1)*.18):(.5*(1+Math.sin(t*17+i*2.1)*.18)));s.material.opacity=.72+Math.sin(t*19.3+i*1.7)*.18}
@@ -451,7 +470,7 @@ renderer&&renderer.domElement.addEventListener('mousemove',function(e){mouseNDC.
 addEventListener('mousedown',function(){mouseDown=true});
 addEventListener('mouseup',function(){mouseDown=false});
 /* ================= oyun ================= */
-var state='menu',P=null,G=null;
+var state='menu',P=null,G=null;var PLI=75;
 var hpfill=document.getElementById('hpfill'),hpT=document.getElementById('hpT'),xpfill=document.getElementById('xpfill'),
     killN=document.getElementById('killN'),goldN=document.getElementById('goldN'),waveN=document.getElementById('waveN'),
     hudEl=document.getElementById('hud'),menuEl=document.getElementById('menu'),cardsEl=document.getElementById('cards'),
@@ -469,7 +488,9 @@ function initRun(){
  if(P){scene.remove(P.grp)}
  if(G){G.enemies.forEach(function(e){scene.remove(e.mesh)});G.orbs.forEach(function(o){scene.remove(o.mesh)});G.shots.forEach(function(s){scene.remove(s.mesh)});G.eshots.forEach(function(o){scene.remove(o.mesh)});G.parts.forEach(function(p){scene.remove(p.mesh)});G.haz.forEach(function(h){scene.remove(h.mesh)})}
  G={enemies:[],shots:[],eshots:[],orbs:[],parts:[],haz:[],wave:1,waveT:0,interT:2.2,bossRef:null,kills:0,gold:0,xp:0,lvl:1,pending:0,spawnT:0,over:false};
- P={grp:mkPlayer(),x:0,z:0,r:.75,hp:100,maxhp:100,spd:8.4,atk:12,aspd:.42,atkT:0,range:11.5,pierce:0,vamp:0,dr:1,face:Math.PI,
+ var cls=selCls,cd=CLASSES[cls];
+ flameLight.color.setHex(cd.lite);PLI=cd.li;
+ P={grp:mkPlayer(cls),cls:cls,x:0,z:0,r:.75,hp:cd.hp,maxhp:cd.hp,spd:cd.spd,atk:cd.atk,aspd:cd.aspd,atkT:0,range:cd.range,pierce:0,vamp:0,dr:1,face:Math.PI,
     invuln:0,walkCd:.9,dashCd:0,dashT:0,dashX:0,dashZ:0,walkA:0,moved:false};
  P.grp.position.set(0,0,0);P.grp.rotation.y=P.face;scene.add(P.grp);
  P.legs=P.grp.userData;
@@ -529,12 +550,16 @@ function icePool(x,z,life,r){var g2=new THREE.Group();
  g2.add(base,edge);g2.position.set(x,0,z);
  var h={mesh:g2,x:x,z:z,r:r-.4,life:life,type:'ice'};scene.add(g2);G.haz.push(h)}
 /* ================= savas ================= */
-function shoot(){var dx=Math.sin(P.face),dz=Math.cos(P.face);
+function shoot(){var ice=!!CLASSES[P.cls].ice,dx=Math.sin(P.face),dz=Math.cos(P.face);
  var m=new THREE.Group();
- var core=new THREE.Mesh(new THREE.SphereGeometry(.17,10,8),new THREE.MeshBasicMaterial({color:0xffc870}));
- var fl=new THREE.Sprite(new THREE.SpriteMaterial({map:FLAME,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:.95,color:0xff9a4d}));fl.scale.setScalar(.85);
+ var core=new THREE.Mesh(new THREE.SphereGeometry(ice?.2:.17,10,8),new THREE.MeshBasicMaterial({color:ice?0x9fdcff:0xffc870}));
+ var fl=new THREE.Sprite(new THREE.SpriteMaterial({map:FLAME,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:.95,color:ice?0x7fc4ff:0xff9a4d}));fl.scale.setScalar(.85);
  m.add(core,fl);m.position.set(P.x+dx*1,1.5,P.z+dz*1);
- G.shots.push({mesh:m,x:m.position.x,z:m.position.z,dx:dx,dz:dz,spd:26,dmg:P.atk,life:Math.max(1,P.range/26),pierce:P.pierce,r:.3})}
+ G.shots.push({mesh:m,x:m.position.x,z:m.position.z,dx:dx,dz:dz,spd:ice?21:26,dmg:P.atk,life:Math.max(1,P.range/26),pierce:P.pierce,ice:ice,r:ice?.34:.3})}
+function swing(){P.grp.userData.swingT=.28;var fx=Math.sin(P.face),fz=Math.cos(P.z?P.face:P.face);fz=Math.cos(P.face);
+ for(var i2=0;i2<G.enemies.length;i2++){var e3=G.enemies[i2],dd=Math.hypot(e3.x-P.x,e3.z-P.z);
+  if(dd<P.range+e3.r){var dot=(fx*(e3.x-P.x)+fz*(e3.z-P.z))/Math.max(.001,dd);if(dot>.35)hitEnemy(e3,P.atk)}}
+ puff(P.x+fx*1.4,1.2,P.z+fz*1.4,0xffc060,6)}
 function hitEnemy(e,dmg){e.hp-=dmg;e.mesh.userData.hitFlash=.14;
  if(P.vamp>0){P.hp=Math.min(P.maxhp,P.hp+dmg*P.vamp)}
  if(e.hp<=0)killEnemy(e)}
@@ -571,6 +596,10 @@ function showMenu(){state='menu';
  if(G){G.enemies.forEach(function(e){scene.remove(e.mesh)});G.orbs.forEach(function(o){scene.remove(o.mesh)});G.shots.forEach(function(s){scene.remove(s.mesh)});G.eshots.forEach(function(o){scene.remove(o.mesh)});G.parts.forEach(function(p){scene.remove(p.mesh)});G.haz.forEach(function(h){scene.remove(h.mesh)});G=null}
  menuStage.visible=true;menuEl.classList.remove('hidden');hudEl.classList.add('hidden');overEl.classList.add('hidden');cardsEl.classList.add('hidden')}
 document.getElementById('startBtn').addEventListener('click',initRun);
+document.querySelectorAll('#clsrow .ccard').forEach(function(c){c.addEventListener('click',function(){
+ document.querySelectorAll('#clsrow .ccard').forEach(function(x){x.classList.remove('sel')});c.classList.add('sel');
+ selCls=c.getAttribute('data-cls');try{localStorage.setItem('oca-cls3d',selCls)}catch(e){}
+ var h=menuStage.userData.hero;if(h)menuStage.remove(h);var h2=mkPlayer(selCls);h2.position.y=.5;h2.rotation.y=-.5;menuStage.add(h2);menuStage.userData.hero=h2})});
 document.getElementById('againBtn').addEventListener('click',initRun);
 document.getElementById('menuBtn').addEventListener('click',showMenu);
 document.getElementById('langBtn').addEventListener('click',function(){lang=lang==='tr'?'de':'tr';try{localStorage.setItem(TKEY,lang)}catch(e){}applyI18n()});
@@ -591,7 +620,7 @@ function step(dt){
  P.grp.position.set(P.x,0,P.z);P.grp.rotation.y=P.face;
  if(P.moved)P.walkA+=dt*9;else P.walkA*=.9;
  P.atkT=Math.max(0,P.atkT-dt);
- if(P.atkT<=0&&mouseDown){shoot();P.atkT=P.aspd}
+ if(P.atkT<=0&&mouseDown){if(CLASSES[P.cls].melee){swing();P.atkT=P.aspd}else{shoot();P.atkT=P.aspd}}
  if((keys.Space)&&P.dashCd<=0&&P.moved){P.dashCd=2.2;P.invuln=.4;P.dashT=.22;P.dashX=mx;P.dashZ=mz}
  P.dashCd=Math.max(0,P.dashCd-dt);P.invuln=Math.max(0,P.invuln-dt);P.slowT=Math.max(0,(P.slowT||0)-dt);
  if(P.dashT>0){P.dashT-=dt;P.x+=P.dashX*26*dt;P.z+=P.dashZ*26*dt;if(rnd()<.5)puff(P.x,1,P.z,0x9ad8ff,1)}
@@ -600,26 +629,27 @@ function step(dt){
   s.mesh.position.set(s.x,1.5,s.z);
   var hit=false;
   for(var j=0;j<G.enemies.length;j++){var e=G.enemies[j],edx=e.x-s.x,edz=e.z-s.z;
-   if(edx*edx+edz*edz<(e.r+s.r)*(e.r+s.r)){hitEnemy(e,s.dmg);spark(s.x,1.5,s.z);hit=true;break}}
+   if(edx*edx+edz*edz<(e.r+s.r)*(e.r+s.r)){hitEnemy(e,s.dmg);if(s.ice)e.slowT=2;spark(s.x,1.5,s.z);hit=true;break}}
   if(hit||s.life<=0){scene.remove(s.mesh);G.shots.splice(i,1);continue}
   var dl2=Math.hypot(s.x,s.z);if(dl2>ARENA+1){scene.remove(s.mesh);G.shots.splice(i,1)}}
  /* dusmanlar */
  for(var j2=0;j2<G.enemies.slice().length;j2++){var e2=G.enemies.slice()[j2];if(!e2)continue;
   var d=Math.hypot(e2.x-P.x,e2.z-P.z),dirx=(P.x-e2.x)/d,dirz=(P.z-e2.z)/d;
   if(e2.bk==='volley'){
-   if(d>10){e2.x+=dirx*e2.spd*dt;e2.z+=dirz*e2.spd*dt;e2.moved=true}
+   if(d>10){e2.x+=dirx*e2.spd*sm*dt;e2.z+=dirz*e2.spd*sm*dt;e2.moved=true}
    if(e2.skillT<=0){e2.skillT=3.2;for(var q=0;q<5;q++){var aa=Math.atan2(dirx,dirz)+(q-2)*.22;eshoot(e2.x,1.3,e2.z,Math.sin(aa),Math.cos(aa),12,Math.round(e2.at/2))}}
   }else if(e2.bk==='nova'){
-   if(d>8){e2.x+=dirx*e2.spd*dt;e2.z+=dirz*e2.spd*dt;e2.moved=true}
+   if(d>8){e2.x+=dirx*e2.spd*sm*dt;e2.z+=dirz*e2.spd*sm*dt;e2.moved=true}
    if(e2.skillT<=0){e2.skillT=5;for(var q2=0;q2<3;q2++){var a3=rnd()*Math.PI*2;eshoot(e2.x,1.3,e2.z,-Math.cos(a3),-Math.sin(a3),9,Math.round(e2.at/2))}icePool(P.x,P.z,2.5,5)}
   }else if(e2.dashy){
-   e2.x+=dirx*e2.spd*dt;e2.z+=dirz*e2.spd*dt;e2.moved=true;
+   e2.x+=dirx*e2.spd*sm*dt;e2.z+=dirz*e2.spd*sm*dt;e2.moved=true;
    if(d<2.6&&e2.touchCd<=0){hurtPlayer(e2.at);e2.touchCd=1.2}
   }else{
-   e2.x+=dirx*e2.spd*dt;e2.z+=dirz*e2.spd*dt;e2.moved=true;
+   e2.x+=dirx*e2.spd*sm*dt;e2.z+=dirz*e2.spd*sm*dt;e2.moved=true;
   }
   e2.walkA+=dt*e2.spd*2.2;
   e2.skillT=Math.max(0,(e2.skillT||0)-dt);
+  e2.slowT=Math.max(0,(e2.slowT||0)-dt);var sm=e2.slowT>0?.45:1;
   e2.touchCd=Math.max(0,e2.touchCd-dt);
   if(d<e2.r+P.r+.35&&e2.touchCd<=0){hurtPlayer(e2.at);e2.touchCd=1.1}
   e2.mesh.position.set(e2.x,0,e2.z)}
@@ -665,9 +695,9 @@ function draw(dt){clockT+=dt;
  embGeo.attributes.position.needsUpdate=true;
  /* alev isigi */
  if(state==='menu'){var mhy=menuStage.userData.hero;flameLight.position.set(mhy.position.x,2,mhy.position.z);
-  flameLight.intensity=60+Math.sin(t*11)*5+Math.sin(t*23)*3}
+  flameLight.intensity=PLI+Math.sin(t*11)*5+Math.sin(t*23)*3}
  else if(P){flameLight.position.set(P.x+Math.sin(P.face)*.68,1.8,P.z+Math.cos(P.face)*.68);
-  flameLight.intensity=60+Math.sin(t*11)*5+Math.sin(t*23)*3}
+  flameLight.intensity=PLI+Math.sin(t*11)*5+Math.sin(t*23)*3}
  /* menü kahramani + fener alevleri */
  if(menuStage.visible){var hero=menuStage.userData.hero;hero.rotation.y+=dt*.25;heroAnim(hero,t,dt);
   var lgv=hero.userData.legL;if(lgv){lgv.rotation.x=Math.sin(t*.9)*.05;hero.userData.legR.rotation.x=-Math.sin(t*.9)*.05}
@@ -675,7 +705,7 @@ function draw(dt){clockT+=dt;
  /* oyuncu animasyonu */
  if(P){var ud=P.legs;
   var sw=Math.sin(P.walkA)*.55;if(P.moved){ud.legL.rotation.x=sw;ud.legR.rotation.x=-sw;ud.armL.rotation.x=.15-sw*.7}else{ud.legL.rotation.x*=.85;ud.legR.rotation.x*=.85;ud.armL.rotation.x*=.85}
-  heroAnim(P.grp,t,dt);
+  P.grp.userData.walking=P.moved;heroAnim(P.grp,t,dt);
   P.grp.visible=P.invuln>0?Math.floor(t*18)%2===0:true}
  /* yaratik animasyonlari (G ancak initRun'da -> menude guard) */
  if(G)for(var i2=0;i2<G.enemies.length;i2++){var e=G.enemies[i2],ud2=e.mesh.userData;
@@ -714,7 +744,7 @@ function loop(now){var dt=Math.min(.05,(now-lastT)/1000);lastT=now;
  try{draw(dt)}catch(err){fatal(err)}
  /* kamera */
  var tx=P?P.x:0,tz=P?P.z:0,th=P?14:12;
- var cx=(P?P.x:Math.cos(clockT*.12)*13),cz=(P?P.z+9.2:Math.sin(clockT*.12)*13),cy=(P?12.5:4.6);
+ var cx=(P?P.x:Math.cos(clockT*.12)*13),cz=(P?P.z+7.6:Math.sin(clockT*.12)*13),cy=(P?17:4.6);
  camera.position.x+=(cx-camera.position.x)*Math.min(1,3.2*dt);
  camera.position.y+=(cy-camera.position.y)*Math.min(1,3.2*dt);
  camera.position.z+=(cz-camera.position.z)*Math.min(1,3.2*dt);

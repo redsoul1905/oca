@@ -324,7 +324,7 @@ function mkPlayer(cls){cls=cls||'okcu';var g=new THREE.Group(),cd=CLASSES[cls];g
   var th=CY(.11*wd,.095*wd,.27,matL);th.position.y=-.135;var kn=SP2(.095*wd,matB,20,14);kn.position.y=-.29;var sh=CY(.095*wd,.085*wd,.25,matB);sh.position.y=-.44;var bt=BX(.15,.11,.28,M63.leat2);bt.position.set(0,-.6,.04);
   gp.add(th,kn,sh,bt);gp.position.set(.16*s2*wd,.6,0)});return[A,B2]}
  function armPair(matUp,matFo,wd){var A=new THREE.Group(),B2=new THREE.Group();[[A,1],[B2,-1]].forEach(function(pr){var s2=pr[1],gp=pr[0];
-  var up=CY(.08*wd,.068*wd,.23,matUp);up.position.y=-.125;var el=SP2(.07*wd,matFo,18,12);el.position.y=-.25;var fo=CY(.068*wd,.058*wd,.22,matFo);fo.position.y=-.37;var hd=SP2(.08*wd,M63.skin,18,12);hd.position.y=-.51;
+  var up=CY(.08*wd,.068*wd,.23,matUp);up.position.y=-.125;var el=SP2(.07*wd,matFo,18,12);el.position.y=-.25;var fo=CY(.068*wd,.058*wd,.22,matFo);fo.position.y=-.37;var hd=SP2(.08*wd,M63.skin,18,12);hd.name='hand';hd.position.y=-.51;
   gp.add(up,el,fo,hd)});return[A,B2]}
  var legL,legR,armL,armR,head,torso,core;
  if(cls==='savasci'){
@@ -334,8 +334,8 @@ function mkPlayer(cls){cls=cls||'okcu';var g=new THREE.Group(),cd=CLASSES[cls];g
   var gut=CY(.29,.25,.2,M63.leat);gut.position.y=.6;
   var belt=new THREE.Mesh(new THREE.TorusGeometry(.35,.05,12,36),M63.leat2);belt.rotation.x=Math.PI/2;belt.position.y=.7;var bkl=BX(.1,.08,.05,M63.steel);bkl.position.set(0,.7,.36);
   var hipA=BX(.16,.3,.07,M63.steel2);hipA.position.set(.2,.52,.02);var hipB=hipA.clone();hipB.position.x=-.2;var hipC=BX(.34,.28,.07,M63.steel2);hipC.position.set(0,.5,-.24);
-  [[.5],[-.5]].forEach(function(p2){var pd=new THREE.Mesh(new THREE.SphereGeometry(.19,26,18,0,Math.PI*2,0,Math.PI*.55),M63.steel);pd.scale.set(1.2,1,1);pd.position.set(p2[0],1.25,0);var pd2=new THREE.Mesh(new THREE.SphereGeometry(.15,22,16,0,Math.PI*2,0,Math.PI*.55),M63.steel2);pd2.scale.set(1.2,1,1);pd2.position.set(p2[0]*1.06,1.13,0);extra.push(pd,pd2)});
-  var ap=armPair(M63.leat2,M63.steel,1.04);armL=ap[0];armR=ap[1];armL.position.set(-.47,1.24,0);armL.rotation.z=.3;armL.rotation.x=.15;armR.position.set(.47,1.24,0);armR.rotation.z=-1.25;armR.rotation.x=-.25;
+  [[.53],[-.53]].forEach(function(p2){var pd=new THREE.Mesh(new THREE.SphereGeometry(.165,26,18,0,Math.PI*2,0,Math.PI*.55),M63.steel);pd.scale.set(1.1,.95,1);pd.position.set(p2[0],1.31,0);var pd2=new THREE.Mesh(new THREE.SphereGeometry(.115,22,16,0,Math.PI*2,0,Math.PI*.55),M63.steel2);pd2.scale.set(1.1,.9,1);pd2.position.set(p2[0],1.19,0);extra.push(pd,pd2)});
+  var ap=armPair(M63.leat,M63.steel,1.04); /* v64: Oberarme hell, Kontrast zum dunklen Torso */armL=ap[0];armR=ap[1];armL.position.set(-.47,1.24,0);armL.rotation.z=.3;armL.rotation.x=.15;armR.position.set(.47,1.24,0);armR.rotation.z=-1.25;armR.rotation.x=-.25;
   head=SP2(.2,M63.skin,36,26);head.position.y=1.46;
   var helm=new THREE.Mesh(new THREE.SphereGeometry(.232,34,24,0,Math.PI*2,0,Math.PI*.58),M63.steel);helm.position.y=1.48;
   var nsv=BX(.04,.17,.05,M63.steel2);nsv.position.set(0,1.44,.3);
@@ -343,11 +343,11 @@ function mkPlayer(cls){cls=cls||'okcu';var g=new THREE.Group(),cd=CLASSES[cls];g
   var beard=SP2(.13,M63.hair,24,16);beard.position.set(0,1.3,.19);beard.scale.set(1,.85,.78);
   var crst=BX(.05,.1,.24,M63.leat);crst.position.set(0,1.68,-.02);
   extra.push(chest,gut,belt,bkl,hipA,hipB,hipC,helm,nsv,chk,chk2,beard,crst);
-  var sw=new THREE.Group();var bl=BX(.075,1.02,.026,M63.blade);bl.position.y=.63;var ft=new THREE.Mesh(new THREE.ConeGeometry(.053,.2,4),M63.blade);ft.position.y=1.24;ft.rotation.y=Math.PI/4;var fl2=BX(.018,.92,.036,M63.steel2);fl2.position.y=.62;
-  var gd=BX(.3,.05,.055,M63.steel2);gd.position.y=.08;var g1=SP2(.035,M63.steel2,12,8);g1.position.set(.16,.08,0);var g2b=g1.clone();g2b.position.x=-.16;
+  var sw=new THREE.Group();var bl=BX(.115,1.02,.042,M63.blade);bl.position.y=.63;var ft=new THREE.Mesh(new THREE.ConeGeometry(.08,.26,6),M63.blade);ft.position.y=1.26;ft.rotation.y=Math.PI/4;var fl2=BX(.018,.92,.036,M63.steel2);fl2.position.y=.62;
+  var gd=BX(.4,.08,.075,M63.steel2);gd.position.y=.08;var g1=SP2(.05,M63.steel2,12,8);g1.position.set(.21,.08,0);var g2b=g1.clone();g2b.position.x=-.16;
   var gp2=CY(.026,.03,.22,M63.leat,12);gp2.position.y=-.06;var wr1=new THREE.Mesh(new THREE.TorusGeometry(.03,.008,8,16),M63.steel2);wr1.rotation.x=Math.PI/2;wr1.position.y=-.02;var wr2=wr1.clone();wr2.position.y=-.12;
   var pm=SP2(.05,M63.steel2,14,10);pm.position.y=-.21;var pg=new THREE.Mesh(new THREE.SphereGeometry(.028,12,10),new THREE.MeshStandardMaterial({color:cd.orb,emissive:cd.orb,emissiveIntensity:2.4}));pg.position.set(0,-.21,.035);
-  sw.add(bl,ft,fl2,gd,g1,g2b,gp2,wr1,wr2,pm,pg);sw.position.set(0,-.5,.05);sw.rotation.set(-2.6,Math.PI/2,.2);armR.add(sw);
+  ft.name='swtip';sw.add(bl,ft,fl2,gd,g1,g2b,gp2,wr1,wr2,pm,pg);sw.position.set(0,-.5,.05);sw.rotation.set(0.68,-0.51,-1.28); /* v64: Quaternion-Loesung, Klinge zeigt vor+runter */armR.add(sw);
   core=new THREE.Mesh(new THREE.SphereGeometry(.075,22,16),new THREE.MeshStandardMaterial({color:0x10161f,emissive:cd.orb,emissiveIntensity:2.2,roughness:.3}));core.position.set(0,1.12,.26);extra.push(core)}
  else if(cls==='okcu'){
   var lg2=legPair(CM,M63.leat,.88);legL=lg2[0];legR=lg2[1];
@@ -391,7 +391,7 @@ function mkPlayer(cls){cls=cls||'okcu';var g=new THREE.Group(),cd=CLASSES[cls];g
   var rr2=new THREE.Mesh(new THREE.TorusGeometry(.22,.012,8,30),new THREE.MeshBasicMaterial({color:cd.orb,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));rr2.position.y=1.26;rr2.rotation.x=1.2;
   var bnd2=new THREE.Mesh(new THREE.TorusGeometry(.055,.014,8,18),M63.steel2);bnd2.rotation.x=Math.PI/2;bnd2.position.y=.85;
   stf.add(stk,core,rr2,bnd2);stf.position.set(0,-.5,.03);stf.rotation.y=Math.PI/2;armR.add(stf)}
- var e1=new THREE.Mesh(new THREE.SphereGeometry(.032,16,12),MAT.glowO);e1.name='eyeL';e1.position.set(.075,head.position.y+.04,.275);var e2b=e1.clone();e2b.name='eyeR';e2b.position.x=-.075;
+ var e1=new THREE.Mesh(new THREE.SphereGeometry(.042,16,12),MAT.glowO);e1.name='eyeL';e1.position.set(.08,head.position.y+.04,.29);var e2b=e1.clone();e2b.name='eyeR';e2b.position.x=-.075;
  legL.position.z=0;
  g.add(legL,legR,torso,head,e1,e2b);extra.forEach(function(x2){g.add(x2)});g.add(armL,armR);
  var hp=core.parent===g?new THREE.Vector3(core.position.x,core.position.y,core.position.z):new THREE.Vector3(cls==='buzyu'?.55:core.position.x,cls==='buzyu'?1.72:core.position.y,cls==='buzyu'?.12:core.position.z);
@@ -546,10 +546,10 @@ function heroAnim(grp,t,dt){var ud=grp.userData;
   if(ud.swD2){grp.position.x+=ud.swD2[0]*ln;grp.position.z+=ud.swD2[1]*ln}}
   else if(dr3>0){ud.drawT=Math.max(0,dr3-dt);var kk=1-dr3/.46,pl=kk<.62?kk/.62:Math.max(0,1-(kk-.62)/.3); /* v59 Bogenschuetze 3-Phasen: Reach (Bogarm raus) -> Draw (Zughand zur Wange, Ellbogen hinter, Schultern offen) -> Loose (Sehne schnellt, Follow) */
    if(kk<.16){var e2=kk/.16;ar3.rotation.x=-.25-1.65*e2;ar3.rotation.z=.15*e2;if(ud.armL)ud.armL.rotation.x=-1.45*e2;if(ud.body)ud.body.rotation.y=-.12*e2}
-   else if(kk<.62){var p2=(kk-.16)/.46;ar3.rotation.x=-1.9+.55*p2;ar3.rotation.z=.6*p2;if(ud.armL)ud.armL.rotation.x=-1.45;if(ud.body)ud.body.rotation.y=-.3*p2}
+   else if(kk<.62){var p2=(kk-.16)/.46;ar3.rotation.x=-2.05+.6*p2;ar3.rotation.z=.42*p2;if(ud.armL)ud.armL.rotation.x=-1.45;if(ud.body)ud.body.rotation.y=-.3*p2}
    else{var r2=(kk-.62)/.38;ar3.rotation.x=-.95-.3*Math.sin(r2*Math.PI);ar3.rotation.z=.6*Math.max(0,1-r2*3);if(ud.armL)ud.armL.rotation.x=-1.45+.2*Math.sin(r2*Math.PI);if(ud.body)ud.body.rotation.y=-.3*Math.max(0,1-r2*2.5)} /* v53: Sehne + eingelegter Pfeil */
    var sg=ud._strg||(ud._strg=grp.getObjectByName('strg'));if(sg){if(sg.userData.z0===undefined)sg.userData.z0=sg.position.z;sg.position.z=sg.userData.z0+pl*.34;var bw=ud._bow||(ud._bow=grp.getObjectByName('bow'));if(bw)bw.rotation.x=-ud.armL.rotation.x}
-   var ar=ud._arr||(ud._arr=(function(){var a=new THREE.Group();var shf2=new THREE.Mesh(new THREE.CylinderGeometry(.026,.026,.98,10),new THREE.MeshStandardMaterial({map:M63.wood.map,roughness:.5}));var tipf2=new THREE.Mesh(new THREE.ConeGeometry(.045,.18,8),M63.blade);tipf2.position.y=.58;var fl3=new THREE.Mesh(new THREE.ConeGeometry(.06,.16,3),new THREE.MeshStandardMaterial({color:0xff7a32,emissive:0x7a2c0e,emissiveIntensity:.8}));fl3.position.y=-.5;var fl4=fl3.clone();fl4.scale.x=-1;var fl5=fl3.clone();fl5.rotation.y=Math.PI/2;a.add(shf2,tipf2,fl3,fl4,fl5);a.position.set(0,-.5,.14);if(ud.armL)ud.armL.add(a);return a})());ar.rotation.x=Math.PI/2-ud.armL.rotation.x;ar.position.z=.16-pl*.22;ar.visible=kk<.62; /* v63c: Pfeil liegt netto horizontal in Zielrichtung */ /* v59: Pfeil bleibt bis zur vollen Loose sichtbar */ /* v57: Ziel-Laser waehrend Zug = Lesbarkeit + Aim-Hilfe */
+   var ar=ud._arr||(ud._arr=(function(){var a=new THREE.Group();var shf2=new THREE.Mesh(new THREE.CylinderGeometry(.026,.026,.98,10),new THREE.MeshStandardMaterial({map:M63.wood.map,roughness:.5}));var tipf2=new THREE.Mesh(new THREE.ConeGeometry(.045,.18,8),M63.blade);tipf2.position.y=.58;var fl3=new THREE.Mesh(new THREE.ConeGeometry(.09,.24,4),new THREE.MeshStandardMaterial({color:0xff7a32,emissive:0x7a2c0e,emissiveIntensity:.8}));fl3.position.y=-.5;var fl4=fl3.clone();fl4.scale.x=-1;var fl5=fl3.clone();fl5.rotation.y=Math.PI/2;a.add(shf2,tipf2,fl3,fl4,fl5);a.position.set(0,-.5,.14);if(ud.armL)ud.armL.add(a);return a})());ar.rotation.x=Math.PI/2-ud.armL.rotation.x;ar.position.z=.16-pl*.22;ar.visible=kk<.62; /* v63c: Pfeil liegt netto horizontal in Zielrichtung */ /* v59: Pfeil bleibt bis zur vollen Loose sichtbar */ /* v57: Ziel-Laser waehrend Zug = Lesbarkeit + Aim-Hilfe */
    var lz=ud._laser||(ud._laser=(function(){var c=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,5.5,6),new THREE.MeshBasicMaterial({color:0xfff2a8,transparent:true,opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false}));c.rotation.x=Math.PI/2;c.position.set(0,1.32,3.25);if(!grp.userData.enemy)grp.add(c);return c})());lz.visible=kk<.62}
   else if(ct3>0){ud.castT=Math.max(0,ct3-dt);var kc=1-ct3/.4,gs=kc<.62?kc/.62:1,sp=kc<.62?0:Math.min(1,(kc-.62)/.16); /* v59 Magier 3-Phasen: Gather (Stab zurueck, Gem haelt Energie, Koerpf holt aus) -> Point (stabiler Stoess in Zielrichtung, Release) -> Follow (zeigt nach, Energie ebbt) */
    if(kc<.62){ar3.rotation.x=-.25+.95*gs;ar3.rotation.z=-.35*gs;if(ud.armL)ud.armL.rotation.x=-.85*gs;if(ud.body)ud.body.rotation.y=.25*gs}

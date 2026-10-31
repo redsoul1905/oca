@@ -332,7 +332,7 @@ function mkPlayer(cls){cls=cls||'okcu';var g=new THREE.Group(),cd=CLASSES[cls];g
  if(cls==='savasci'){
   var lg=legPair(M63.leat2,M63.steel2,1.12);legL=lg[0];legR=lg[1];
   [[legL],[legR]].forEach(function(L){[[-.34],[ -.5]].forEach(function(ry){var rg=new THREE.Mesh(new THREE.TorusGeometry(.115,.02,10,20),M63.steel2);rg.rotation.x=Math.PI/2;rg.position.y=ry[0];L[0].add(rg)})});
-  torso=LTH([[0,.56],[.27,.6],[.325,.74],[.30,.88],[.345,1.02],[.36,1.13],[.31,1.23],[.21,1.29],[.13,1.31],[0,1.32]],M63.steel,30);torso.scale.z=.85;var brM=new THREE.MeshStandardMaterial({map:M63.steel.map,color:0xdde6f0,metalness:.85,roughness:.2,emissive:0x1a2530,emissiveIntensity:.35});
+  torso=LTH([[0,.56],[.27,.6],[.325,.74],[.30,.88],[.345,1.02],[.36,1.13],[.31,1.23],[.21,1.29],[.13,1.31],[0,1.32]],M63.steel,30);torso.scale.z=.85;var brM=new THREE.MeshStandardMaterial({map:M63.steel.map,color:0xe8eef6,metalness:.8,roughness:.18,emissive:0x46586a,emissiveIntensity:1.1});
   var pecL=SP2(.14,M63.steel,22,14);pecL.scale.set(1,.62,.42);pecL.position.set(.12,1.13,.19);var pecR=pecL.clone();pecR.position.x=-.12;
   var gut=LTH([[0,.56],[.30,.6],[.31,.68],[.28,.74],[0,.75]],M63.leat,26);gut.scale.z=.85;
   var belt=new THREE.Mesh(new THREE.TorusGeometry(.345,.05,12,36),M63.leat2);belt.rotation.x=Math.PI/2;belt.position.y=.72;var bkl=BX(.11,.09,.05,M63.steel);bkl.position.set(0,.72,.31);

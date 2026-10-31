@@ -314,85 +314,93 @@ M63.hair=new THREE.MeshStandardMaterial({map:leatherCvs(0x241608,0x0d0702),rough
 M63.skin=new THREE.MeshStandardMaterial({color:0xc99a6b,roughness:.55});
 M63.wood=new THREE.MeshStandardMaterial({map:ctex(woodCvs(0x5c4630,0x2e2013),true),roughness:.6});
 M63.cloth={};for(var k63 in CLASSES)M63.cloth[k63]=new THREE.MeshStandardMaterial({map:ctex(clothCvs(CLASSES[k63].robe,0x131016),true),roughness:.85});
-function mkPlayer(cls){cls=cls||'okcu';var g=new THREE.Group(),cd=CLASSES[cls];g.scale.setScalar(1.3);
- /* v63: Figuren-Neubau — Klassen-Silhouetten mit echtem Charakter: Plattenriuestung / Leder-Rekursion / Mantel mit Panzer. Keine Umhaenge, echt texturiert, hochpolig */
+function mkPlayer(cls){cls=cls||'okcu';var g=new THREE.Group(),cd=CLASSES[cls];g.scale.setScalar(cls==='savasci'?1.34:cls==='okcu'?1.26:1.3);
+ /* ==== v65: Echte Koerperbau-Unterschiede — LatheProfile (gedrehte Silhouetten), Kapsel-Gliedmassen, eigene Proportionen pro Klasse. Min. 300 Polygone (real >2500) ==== */
  var CM=M63.cloth[cls],extra=[];
  function SP2(r,mat,ws,hs){return S3(new THREE.Mesh(new THREE.SphereGeometry(r,ws||30,hs||22),mat))}
- function CY(r1,r2,h,mat,segs){return S3(new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,segs||22),mat))}
+ function CY(r1,r2,h,mat,segs,open2){return S3(new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,segs||24,1,!!open2),mat))}
  function BX(w,h,d,mat){return S3(new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat))}
- function legPair(matL,matB,wd){var A=new THREE.Group(),B2=new THREE.Group();[[A,1],[B2,-1]].forEach(function(pr){var s2=pr[1],gp=pr[0];
-  var th=CY(.11*wd,.095*wd,.27,matL);th.position.y=-.135;var kn=SP2(.095*wd,matB,20,14);kn.position.y=-.29;var sh=CY(.095*wd,.085*wd,.25,matB);sh.position.y=-.44;var bt=BX(.15,.11,.28,M63.leat2);bt.position.set(0,-.6,.04);
-  gp.add(th,kn,sh,bt);gp.position.set(.16*s2*wd,.6,0)});return[A,B2]}
+ function LTH(pr,mat,sg){var p2=pr.map(function(q){return new THREE.Vector2(Math.max(q[0],0),q[1])});return S3(new THREE.Mesh(new THREE.LatheGeometry(p2,sg||28),mat))}
+ function CAP(r,h,mat,rs){return THREE.CapsuleGeometry?S3(new THREE.Mesh(new THREE.CapsuleGeometry(r,h,7,rs||16),mat)):(function(){var gg=new THREE.Group();var c2=S3(new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,rs||16),mat));var t1=SP2(r,mat,18,12),t2=t1.clone();t1.position.y=h/2;t2.position.y=-h/2;gg.add(c2,t1,t2);return gg})()}
+ function legPair(matL,matB,wd,boot2){var A=new THREE.Group(),B2=new THREE.Group();[[A,1],[B2,-1]].forEach(function(pr){var s2=pr[1],gp=pr[0];
+  var th=CAP(.108*wd,.16*wd,matL);th.position.y=-.16;var kn=SP2(.094*wd,matB,20,14);kn.position.y=-.31;var sh=CAP(.084*wd,.15*wd,matB);sh.position.y=-.47;var bt=BX(.15,.1,.3,M63.leat2);bt.position.set(0,-.62,.05);gp.add(th,kn,sh,bt);
+  if(boot2){var btc=CY(.105*wd,.115*wd,.2,matB);btc.position.y=-.44;gp.add(btc)}
+  gp.position.set(.17*s2*wd,.6,0)});return[A,B2]}
  function armPair(matUp,matFo,wd){var A=new THREE.Group(),B2=new THREE.Group();[[A,1],[B2,-1]].forEach(function(pr){var s2=pr[1],gp=pr[0];
-  var up=CY(.08*wd,.068*wd,.23,matUp);up.position.y=-.125;var el=SP2(.07*wd,matFo,18,12);el.position.y=-.25;var fo=CY(.068*wd,.058*wd,.22,matFo);fo.position.y=-.37;var hd=SP2(.08*wd,M63.skin,18,12);hd.name='hand';hd.position.y=-.51;
-  gp.add(up,el,fo,hd)});return[A,B2]}
+  var up=CAP(.078*wd,.14*wd,matUp);up.position.y=-.13;var el=SP2(.068*wd,matFo,18,12);el.position.y=-.26;var fo=CAP(.062*wd,.13*wd,matFo);fo.position.y=-.38;var hd=SP2(.098*wd,M63.skin,20,14);hd.name='hand';hd.position.y=-.52;gp.add(up,el,fo,hd)});return[A,B2]}
  var legL,legR,armL,armR,head,torso,core;
  if(cls==='savasci'){
-  var lg=legPair(M63.leat2,M63.steel2,1.08);legL=lg[0];legR=lg[1];
-  torso=CY(.31,.36,.52,M63.steel,26);torso.position.y=.96;torso.scale.z=.82;
-  var chest=SP2(.31,M63.steel,34,24);chest.position.set(0,1.08,.02);chest.scale.set(1.04,.66,.6);
-  var gut=CY(.29,.25,.2,M63.leat);gut.position.y=.6;
-  var belt=new THREE.Mesh(new THREE.TorusGeometry(.35,.05,12,36),M63.leat2);belt.rotation.x=Math.PI/2;belt.position.y=.7;var bkl=BX(.1,.08,.05,M63.steel);bkl.position.set(0,.7,.36);
-  var hipA=BX(.16,.3,.07,M63.steel2);hipA.position.set(.2,.52,.02);var hipB=hipA.clone();hipB.position.x=-.2;var hipC=BX(.34,.28,.07,M63.steel2);hipC.position.set(0,.5,-.24);
-  [[.53],[-.53]].forEach(function(p2){var pd=new THREE.Mesh(new THREE.SphereGeometry(.165,26,18,0,Math.PI*2,0,Math.PI*.55),M63.steel);pd.scale.set(1.1,.95,1);pd.position.set(p2[0],1.31,0);var pd2=new THREE.Mesh(new THREE.SphereGeometry(.115,22,16,0,Math.PI*2,0,Math.PI*.55),M63.steel2);pd2.scale.set(1.1,.9,1);pd2.position.set(p2[0],1.19,0);extra.push(pd,pd2)});
-  var ap=armPair(M63.leat,M63.steel,1.04); /* v64: Oberarme hell, Kontrast zum dunklen Torso */armL=ap[0];armR=ap[1];armL.position.set(-.47,1.24,0);armL.rotation.z=.3;armL.rotation.x=.15;armR.position.set(.47,1.24,0);armR.rotation.z=-1.25;armR.rotation.x=-.25;
-  head=SP2(.2,M63.skin,36,26);head.position.y=1.46;
-  var helm=new THREE.Mesh(new THREE.SphereGeometry(.232,34,24,0,Math.PI*2,0,Math.PI*.58),M63.steel);helm.position.y=1.48;
-  var nsv=BX(.04,.17,.05,M63.steel2);nsv.position.set(0,1.44,.3);
-  var chk=BX(.05,.13,.12,M63.steel2);chk.position.set(.13,1.37,.23);var chk2=chk.clone();chk2.position.x=-.13;
-  var beard=SP2(.13,M63.hair,24,16);beard.position.set(0,1.3,.19);beard.scale.set(1,.85,.78);
-  var crst=BX(.05,.1,.24,M63.leat);crst.position.set(0,1.68,-.02);
-  extra.push(chest,gut,belt,bkl,hipA,hipB,hipC,helm,nsv,chk,chk2,beard,crst);
-  var sw=new THREE.Group();var bl=BX(.115,1.02,.042,M63.blade);bl.position.y=.63;var ft=new THREE.Mesh(new THREE.ConeGeometry(.08,.26,6),M63.blade);ft.position.y=1.26;ft.rotation.y=Math.PI/4;var fl2=BX(.018,.92,.036,M63.steel2);fl2.position.y=.62;
+  var lg=legPair(M63.leat2,M63.steel2,1.12);legL=lg[0];legR=lg[1];
+  [[legL],[legR]].forEach(function(L){[[-.34],[ -.5]].forEach(function(ry){var rg=new THREE.Mesh(new THREE.TorusGeometry(.115,.02,10,20),M63.steel2);rg.rotation.x=Math.PI/2;rg.position.y=ry[0];L[0].add(rg)})});
+  torso=LTH([[0,.56],[.27,.6],[.325,.74],[.30,.88],[.345,1.02],[.36,1.13],[.31,1.23],[.21,1.29],[.13,1.31],[0,1.32]],M63.steel,30);torso.scale.z=.85;var brM=new THREE.MeshStandardMaterial({map:M63.steel.map,color:0xdde6f0,metalness:.85,roughness:.2,emissive:0x1a2530,emissiveIntensity:.35});
+  var pecL=SP2(.14,M63.steel,22,14);pecL.scale.set(1,.62,.42);pecL.position.set(.12,1.13,.19);var pecR=pecL.clone();pecR.position.x=-.12;
+  var gut=LTH([[0,.56],[.30,.6],[.31,.68],[.28,.74],[0,.75]],M63.leat,26);gut.scale.z=.85;
+  var belt=new THREE.Mesh(new THREE.TorusGeometry(.345,.05,12,36),M63.leat2);belt.rotation.x=Math.PI/2;belt.position.y=.72;var bkl=BX(.11,.09,.05,M63.steel);bkl.position.set(0,.72,.31);
+  var hipA=BX(.16,.3,.06,M63.steel2);hipA.position.set(.2,.5,.02);var hipB=hipA.clone();hipB.position.x=-.2;var hipC=BX(.36,.28,.06,M63.steel2);hipC.position.set(0,.48,-.22);
+  [[.52],[-.52]].forEach(function(p2){var pd=LTH([[0,1.38],[.09,1.374],[.17,1.34],[.235,1.27],[.255,1.17],[.245,1.09],[.16,1.07],[0,1.08]],p2[0]>0?M63.steel:M63.steel,26);pd.position.x=p2[0];var sp=new THREE.Mesh(new THREE.ConeGeometry(.03,.09,8),M63.steel2);sp.position.set(p2[0]*1.08,1.4,0);sp.rotation.z=-p2[0]*.35;extra.push(pd,sp)});
+  var ap=armPair(M63.leat,M63.steel,1.08);armL=ap[0];armR=ap[1];armL.position.set(-.5,1.26,0);armL.rotation.z=-.2;armL.rotation.x=.05;armR.position.set(.5,1.26,0);armR.rotation.z=.3;armR.rotation.x=-.1;
+  [armL,armR].forEach(function(am){var cuff=new THREE.Mesh(new THREE.TorusGeometry(.075,.017,10,18),M63.steel2);cuff.rotation.x=Math.PI/2;cuff.position.y=-.47;am.add(cuff)});
+  var neck=CY(.085,.092,.16,M63.steel2);neck.position.y=1.36;extra.push(neck,pecL,pecR,gut,belt,bkl,hipA,hipB,hipC);
+  head=SP2(.195,M63.skin,36,26);head.position.y=1.5;
+  var helm=new THREE.Mesh(new THREE.SphereGeometry(.228,34,24,0,Math.PI*2,0,Math.PI*.58),M63.steel);helm.position.y=1.52;
+  var brow=new THREE.Mesh(new THREE.TorusGeometry(.208,.02,10,28),M63.steel2);brow.rotation.x=Math.PI/2.1;brow.position.set(0,1.55,0);
+  var nsv=BX(.042,.18,.05,M63.steel2);nsv.position.set(0,1.46,.29);
+  var chk=BX(.05,.14,.12,M63.steel2);chk.position.set(.13,1.4,.22);var chk2=chk.clone();chk2.position.x=-.13;
+  var beard=SP2(.13,M63.hair,26,18);beard.position.set(0,1.34,.17);beard.scale.set(1,.9,.8);
+  var crst;if(THREE.CatmullRomCurve3){var cc=new THREE.CatmullRomCurve3([new THREE.Vector3(0,1.6,.18),new THREE.Vector3(0,1.84,.03),new THREE.Vector3(0,1.78,-.12),new THREE.Vector3(0,1.6,-.2)]);crst=S3(new THREE.Mesh(new THREE.TubeGeometry(cc,22,.055,10,false),M63.leat))}else crst=BX(.05,.1,.24,M63.leat);
+  extra.push(helm,brow,nsv,chk,chk2,beard,crst);
+  var sw=new THREE.Group();var bl=BX(.13,1.02,.07,brM);bl.position.y=.63;var ft=new THREE.Mesh(new THREE.ConeGeometry(.08,.26,6),brM);ft.position.y=1.26;ft.rotation.y=Math.PI/4;var fl2=BX(.03,.92,.052,M63.steel2);fl2.position.y=.62;
   var gd=BX(.4,.08,.075,M63.steel2);gd.position.y=.08;var g1=SP2(.05,M63.steel2,12,8);g1.position.set(.21,.08,0);var g2b=g1.clone();g2b.position.x=-.16;
   var gp2=CY(.026,.03,.22,M63.leat,12);gp2.position.y=-.06;var wr1=new THREE.Mesh(new THREE.TorusGeometry(.03,.008,8,16),M63.steel2);wr1.rotation.x=Math.PI/2;wr1.position.y=-.02;var wr2=wr1.clone();wr2.position.y=-.12;
   var pm=SP2(.05,M63.steel2,14,10);pm.position.y=-.21;var pg=new THREE.Mesh(new THREE.SphereGeometry(.028,12,10),new THREE.MeshStandardMaterial({color:cd.orb,emissive:cd.orb,emissiveIntensity:2.4}));pg.position.set(0,-.21,.035);
-  ft.name='swtip';sw.add(bl,ft,fl2,gd,g1,g2b,gp2,wr1,wr2,pm,pg);sw.position.set(0,-.5,.05);sw.rotation.set(0.68,-0.51,-1.28); /* v64: Quaternion-Loesung, Klinge zeigt vor+runter */armR.add(sw);
-  core=new THREE.Mesh(new THREE.SphereGeometry(.075,22,16),new THREE.MeshStandardMaterial({color:0x10161f,emissive:cd.orb,emissiveIntensity:2.2,roughness:.3}));core.position.set(0,1.12,.26);extra.push(core)}
+  ft.name='swtip';sw.add(bl,ft,fl2,gd,g1,g2b,gp2,wr1,wr2,pm,pg);sw.position.set(.1,-.52,.2);sw.rotation.set(0.68,-0.51,-1.28);armR.add(sw);
+  core=new THREE.Mesh(new THREE.SphereGeometry(.075,22,16),new THREE.MeshStandardMaterial({color:0x10161f,emissive:cd.orb,emissiveIntensity:2.2,roughness:.3}));core.position.set(0,1.14,.25);extra.push(core)}
  else if(cls==='okcu'){
-  var lg2=legPair(CM,M63.leat,.88);legL=lg2[0];legR=lg2[1];
-  torso=CY(.24,.28,.46,CM,24);torso.position.y=.94;
-  var vest=SP2(.27,M63.leat,30,22);vest.position.set(0,1.02,.02);vest.scale.set(.96,.62,.66);
-  var skirt=CY(.27,.31,.28,CM,22);skirt.position.y=.62;
-  var belt2=new THREE.Mesh(new THREE.TorusGeometry(.28,.033,12,32),M63.leat2);belt2.rotation.x=Math.PI/2;belt2.position.y=.76;var pouch=BX(.12,.14,.09,M63.leat);pouch.position.set(.26,.66,.04);
-  var ap2=armPair(CM,M63.leat,.86);armL=ap2[0];armR=ap2[1];armL.position.set(-.41,1.22,0);armL.rotation.z=.3;armL.rotation.x=.15;armR.position.set(.41,1.22,0);armR.rotation.z=-1.25;armR.rotation.x=-.25;
-  var brc=new THREE.Mesh(new THREE.CylinderGeometry(.075,.07,.16,16,1,true),M63.leat2);brc.position.set(-.02,-.36,.02);armL.add(brc);
-  head=SP2(.19,M63.skin,36,26);head.position.y=1.45;
-  var cowl=new THREE.Mesh(new THREE.SphereGeometry(.235,32,24,Math.PI*.25,Math.PI*1.5,Math.PI*.12,Math.PI*.55),CM);cowl.position.set(0,1.47,-.015);
-  var band=new THREE.Mesh(new THREE.TorusGeometry(.195,.022,10,26),M63.leat2);band.rotation.x=Math.PI/2.3;band.position.set(0,1.52,0);
-  var qv=CY(.085,.085,.46,M63.leat2,16);qv.position.set(-.2,1.02,-.3);qv.rotation.x=.42;qv.rotation.z=-.3;extra.push(qv);
-  for(var q2=0;q2<4;q2++){var af=new THREE.Mesh(new THREE.CylinderGeometry(.017,.017,.32,8),M63.wood);af.position.set(-.2+Math.cos(q2*1.6)*.035,1.34+Math.sin(q2*1.6)*.035,-.3+Math.cos(q2*2.1)*.03);af.rotation.x=.42;af.rotation.z=-.3;var ff=new THREE.Mesh(new THREE.ConeGeometry(.045,.13,6),new THREE.MeshStandardMaterial({color:0xff7a32,emissive:0x6e2a0e,emissiveIntensity:.6}));ff.position.copy(af.position);ff.position.y+=.2;ff.rotation.x=.42+Math.PI;ff.rotation.z=-.3;extra.push(af,ff)}
-  extra.push(vest,skirt,belt2,pouch,cowl,band);
-  var bow=new THREE.Group(),pts=[],Rb=.44;for(var a63=-2.05;a63<=2.06;a63+=.23){var rr=Rb*(1+.14*Math.pow(Math.abs(a63)/2.05,2.6)),zz=-.06*Math.pow(Math.abs(a63)/2.05,3);pts.push(new THREE.Vector3(Math.cos(a63)*rr,Math.sin(a63)*rr,zz))}
-  var lim;if(THREE.CatmullRomCurve3){lim=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),42,.019,10,false),M63.wood)}else{lim=new THREE.Mesh(new THREE.TorusGeometry(.44,.03,10,60,Math.PI*1.3),M63.wood)}
+  var lg2=legPair(CM,M63.leat,.88,1);legL=lg2[0];legR=lg2[1];
+  torso=LTH([[0,.58],[.225,.62],[.26,.73],[.235,.87],[.268,1.01],[.25,1.15],[.19,1.25],[.125,1.29],[0,1.3]],CM,26);
+  var vest=LTH([[.20,1.0],[.255,1.05],[.262,1.14],[.22,1.23],[.15,1.27],[.14,1.0]],M63.leat,24);
+  var skirt=LTH([[0,.3],[.345,.34],[.30,.46],[.27,.56],[.26,.63],[.235,.64]],CM,26);
+  var strap1=BX(.055,.52,.028,M63.leat2);strap1.position.set(.09,1.0,.22);strap1.rotation.z=-.42;strap1.rotation.x=-.12;var strap2=strap1.clone();strap2.position.x=-.09;strap2.rotation.z=.42;
+  var belt2=new THREE.Mesh(new THREE.TorusGeometry(.27,.032,12,32),M63.leat2);belt2.rotation.x=Math.PI/2;belt2.position.y=.74;var pouch=BX(.12,.14,.09,M63.leat);pouch.position.set(.26,.64,.03);
+  extra.push(vest,skirt,strap1,strap2,belt2,pouch);
+  var ap2=armPair(CM,M63.leat,.84);armL=ap2[0];armR=ap2[1];armL.position.set(-.4,1.23,0);armL.rotation.z=-.55;armL.rotation.x=-.3;armR.position.set(.4,1.23,0);armR.rotation.z=.25;armR.rotation.x=-.1;
+  var brc=new THREE.Mesh(new THREE.CylinderGeometry(.072,.066,.17,16,1,true),M63.leat2);brc.position.set(-.02,-.38,.02);armL.add(brc);
+  head=SP2(.185,M63.skin,36,26);head.position.y=1.46;
+  var cowl=new THREE.Mesh(new THREE.SphereGeometry(.232,32,24,Math.PI*.25,Math.PI*1.5,Math.PI*.1,Math.PI*.55),CM);cowl.position.set(0,1.48,-.02);
+  var hoodT=SP2(.09,CM,16,10);hoodT.scale.set(.8,1.5,.7);hoodT.position.set(0,1.6,-.2);hoodT.rotation.x=.5;
+  var band=new THREE.Mesh(new THREE.TorusGeometry(.19,.02,10,26),M63.leat2);band.rotation.x=Math.PI/2.3;band.position.set(0,1.53,.01);
+  var tail1=SP2(.06,M63.hair,14,10);tail1.position.set(0,1.5,-.22);var tail2=SP2(.05,M63.hair,14,10);tail2.position.set(0,1.4,-.3);var tail3=CY(.035,.02,.26,M63.hair,12);tail3.position.set(0,1.22,-.34);tail3.rotation.x=.25;
+  var qv=CY(.082,.082,.5,M63.leat2,16);qv.position.set(-.24,1.06,-.27);qv.rotation.x=.35;qv.rotation.z=-.35;extra.push(qv,cowl,hoodT,band,tail1,tail2,tail3);
+  for(var q2=0;q2<4;q2++){var af=new THREE.Mesh(new THREE.CylinderGeometry(.017,.017,.32,8),M63.wood);af.position.set(-.24+Math.cos(q2*1.6)*.035,1.44+Math.sin(q2*1.6)*.035,-.27+Math.cos(q2*2.1)*.03);af.rotation.x=.35;af.rotation.z=-.35;var ff=new THREE.Mesh(new THREE.ConeGeometry(.05,.15,6),new THREE.MeshStandardMaterial({color:0xff7a32,emissive:0x6e2a0e,emissiveIntensity:.6}));ff.position.copy(af.position);ff.position.y+=.22;ff.rotation.x=.35+Math.PI;ff.rotation.z=-.35;extra.push(af,ff)}
+  var bow=new THREE.Group(),pts=[],Rb=.5;for(var a63=-2.05;a63<=2.06;a63+=.2){var rr=Rb*(1+.16*Math.pow(Math.abs(a63)/2.05,2.6)),zz=-.06*Math.pow(Math.abs(a63)/2.05,3);pts.push(new THREE.Vector3(Math.cos(a63)*rr,Math.sin(a63)*rr,zz))}
+  var lim;if(THREE.CatmullRomCurve3){lim=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),46,.035,10,false),M63.wood)}else{lim=new THREE.Mesh(new THREE.TorusGeometry(.46,.03,10,60,Math.PI*1.3),M63.wood)}
   var grip2=SP2(.045,M63.leat,16,12);grip2.scale.set(1,1.5,.7);
   var tp1=SP2(.026,M63.leat2,10,8);tp1.position.copy(pts[0]);var tp2=tp1.clone();tp2.position.copy(pts[pts.length-1]);
   bow.add(lim,grip2,tp1,tp2);bow.name='bow';bow.position.set(0,-.52,.02);armL.add(bow);
-  var strg=new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,.86,8),new THREE.MeshBasicMaterial({color:0xf5ecd2}));strg.name='strg';strg.rotation.z=Math.PI/2;strg.position.set(0,-.52,.05);armL.add(strg);
-  core=new THREE.Mesh(new THREE.SphereGeometry(.06,20,14),new THREE.MeshStandardMaterial({color:0x10161f,emissive:cd.orb,emissiveIntensity:2.4,roughness:.3}));core.position.set(0,1.12,.24);extra.push(core)}
+  var strg=new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,.9,8),new THREE.MeshBasicMaterial({color:0xf5ecd2}));strg.name='strg';strg.rotation.z=Math.PI/2;strg.position.set(0,-.52,.05);armL.add(strg);
+  core=new THREE.Mesh(new THREE.SphereGeometry(.045,18,12),new THREE.MeshStandardMaterial({color:0x10161f,emissive:cd.orb,emissiveIntensity:1.1,roughness:.4}));core.position.set(-.12,1.06,.15);extra.push(core)}
  else{
-  var lg3=legPair(M63.leat2,M63.leat,.92);legL=lg3[0];legR=lg3[1];
-  torso=CY(.26,.3,.48,CM,24);torso.position.y=.95;
-  var panelB=BX(.5,.86,.045,CM);panelB.position.set(0,.72,-.24);panelB.rotation.x=.06;
-  var panelS1=BX(.15,.82,.05,CM);panelS1.position.set(.28,.75,-.02);panelS1.rotation.z=.1;var panelS2=panelS1.clone();panelS2.position.x=-.28;panelS2.rotation.z=-.1;
-  var lap1=BX(.11,.34,.03,CM);lap1.position.set(.13,1.06,.24);lap1.rotation.z=.14;var lap2=lap1.clone();lap2.position.x=-.13;lap2.rotation.z=-.14;
-  var strapA=BX(.07,.56,.03,M63.leat);strapA.position.set(.16,.98,.24);strapA.rotation.z=-.5;var strapB=BX(.06,.4,.03,M63.leat);strapB.position.set(-.1,1,.25);strapB.rotation.z=.42;
-  var satch=BX(.16,.16,.1,M63.leat);satch.position.set(-.28,.72,-.06);
-  var pl1=BX(.3,.07,.24,M63.steel2);pl1.position.set(.42,1.27,.01);pl1.rotation.z=-.55;var pl2=BX(.26,.06,.21,M63.steel2);pl2.position.set(.47,1.14,0);pl2.rotation.z=-.62;var pl3=BX(.22,.05,.18,M63.leat2);pl3.position.set(.5,1.01,-.01);pl3.rotation.z=-.7;
-  var collar=new THREE.Mesh(new THREE.TorusGeometry(.16,.035,10,26,Math.PI*1.25),CM);collar.rotation.set(Math.PI/2,0,-Math.PI*.12);collar.position.set(0,1.3,-.03);
-  var ap3=armPair(CM,M63.leat,.9);armL=ap3[0];armR=ap3[1];armL.position.set(-.42,1.23,0);armL.rotation.z=.3;armL.rotation.x=.15;armR.position.set(.42,1.23,0);armR.rotation.z=-1.25;armR.rotation.x=-.25;
-  head=SP2(.195,M63.skin,36,26);head.position.y=1.45;
-  var hair2=SP2(.215,M63.hair,30,22);hair2.position.set(0,1.5,-.06);hair2.scale.set(1.04,.92,1.06);
-  var band2=new THREE.Mesh(new THREE.TorusGeometry(.2,.02,10,26),M63.leat2);band2.rotation.x=Math.PI/2.25;band2.position.set(0,1.53,0);
-  extra.push(panelB,panelS1,panelS2,lap1,lap2,strapA,strapB,satch,pl1,pl2,pl3,collar,hair2,band2);
+  var lg3=legPair(M63.leat2,M63.leat,.9);legL=lg3[0];legR=lg3[1];
+  torso=LTH([[0,.03],[.53,.06],[.48,.17],[.40,.33],[.33,.52],[.285,.72],[.25,.92],[.225,1.1],[.185,1.25],[.125,1.32],[.07,1.34],[0,1.35]],CM,32);
+  var hem=new THREE.Mesh(new THREE.TorusGeometry(.48,.03,10,36),M63.cloth[cls]===CM?M63.leat2:CM);hem.rotation.x=Math.PI/2;hem.position.y=.05;
+  var fbnd1=new THREE.Mesh(new THREE.TorusGeometry(.30,.024,10,30),M63.leat2);fbnd1.rotation.x=Math.PI/2+.12;fbnd1.position.set(0,.45,.02);
+  var sash=new THREE.Mesh(new THREE.TorusGeometry(.30,.035,10,32),M63.leat2);sash.rotation.x=Math.PI/2;sash.position.y=.8;var knot=BX(.06,.34,.035,M63.leat2);knot.position.set(.13,.6,.27);knot.rotation.z=.18;
+  extra.push(hem,fbnd1,sash,knot);
+  var ap3=armPair(CM,M63.leat,.9);armL=ap3[0];armR=ap3[1];armL.position.set(-.44,1.27,0);armL.rotation.z=-.22;armL.rotation.x=.05;armR.position.set(.44,1.27,0);armR.rotation.z=.28;armR.rotation.x=-.1;
+  [armL,armR].forEach(function(am){var slv=CY(.145,.105,.36,CM,20,true);slv.position.set(0,-.2,0);am.add(slv)});
+  head=SP2(.19,M63.skin,36,26);head.position.y=1.48;
+  var hoodm=new THREE.Mesh(new THREE.SphereGeometry(.245,32,24,Math.PI*.2,Math.PI*1.6,Math.PI*.06,Math.PI*.6),CM);hoodm.position.set(0,1.5,-.02);
+  var hat1=CY(.34,.36,.035,CM,26);hat1.position.y=1.66;var hat2=new THREE.Mesh(new THREE.ConeGeometry(.24,.68,26),CM);hat2.position.set(0,2.0,-.02);hat2.rotation.z=-.1;var hat3=new THREE.Mesh(new THREE.ConeGeometry(.12,.36,20),CM);hat3.position.set(.22,2.52,-.12);hat3.rotation.z=-.75;
+  var hatB=new THREE.Mesh(new THREE.TorusGeometry(.27,.02,8,26),M63.leat2);hatB.rotation.x=Math.PI/2;hatB.position.y=1.7;
+  var must=SP2(.1,M63.hair,18,12);must.scale.set(1.15,1.5,.8);must.position.set(0,1.28,.12);
+  extra.push(hoodm,hat1,hat2,hat3,hatB,must);
   var stf=new THREE.Group();var stk=CY(.036,.048,1.34,M63.wood,20);stk.position.y=.42;
   if(THREE.CatmullRomCurve3){for(var pr2=0;pr2<3;pr2++){var ang=pr2*Math.PI*2/3;var crv=new THREE.CatmullRomCurve3([new THREE.Vector3(Math.cos(ang)*.05,.95,Math.sin(ang)*.05),new THREE.Vector3(Math.cos(ang)*.13,1.12,Math.sin(ang)*.13),new THREE.Vector3(Math.cos(ang)*.09,1.28,Math.sin(ang)*.09),new THREE.Vector3(0,1.38,0)]);stf.add(new THREE.Mesh(new THREE.TubeGeometry(crv,20,.016,8,false),M63.wood))}}
-  core=new THREE.Mesh(new THREE.IcosahedronGeometry(.15,1),new THREE.MeshStandardMaterial({color:cd.orb,emissive:cd.orb,emissiveIntensity:1.5,transparent:true,opacity:.92}));core.position.y=1.26;core.name='gem';
-  var rr2=new THREE.Mesh(new THREE.TorusGeometry(.22,.012,8,30),new THREE.MeshBasicMaterial({color:cd.orb,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));rr2.position.y=1.26;rr2.rotation.x=1.2;
+  core=new THREE.Mesh(new THREE.IcosahedronGeometry(.16,0),new THREE.MeshStandardMaterial({color:cd.orb,emissive:cd.orb,emissiveIntensity:1.6,transparent:true,opacity:.72,roughness:.08,metalness:.1}));core.position.y=1.26;core.name='gem';
+  var rr2=new THREE.Mesh(new THREE.TorusGeometry(.19,.01,8,30),new THREE.MeshBasicMaterial({color:cd.orb,transparent:true,opacity:.26,blending:THREE.AdditiveBlending,depthWrite:false}));rr2.position.y=1.26;rr2.rotation.x=1.2;
   var bnd2=new THREE.Mesh(new THREE.TorusGeometry(.055,.014,8,18),M63.steel2);bnd2.rotation.x=Math.PI/2;bnd2.position.y=.85;
   stf.add(stk,core,rr2,bnd2);stf.position.set(0,-.5,.03);stf.rotation.y=Math.PI/2;armR.add(stf)}
- var e1=new THREE.Mesh(new THREE.SphereGeometry(.042,16,12),MAT.glowO);e1.name='eyeL';e1.position.set(.08,head.position.y+.04,.29);var e2b=e1.clone();e2b.name='eyeR';e2b.position.x=-.075;
- legL.position.z=0;
+ var e1=new THREE.Mesh(new THREE.SphereGeometry(.042,16,12),MAT.glowO);e1.name='eyeL';e1.position.set(.08,head.position.y+.04,.28);var e2b=e1.clone();e2b.name='eyeR';e2b.position.x=-.075;
  g.add(legL,legR,torso,head,e1,e2b);extra.forEach(function(x2){g.add(x2)});g.add(armL,armR);
  var hp=core.parent===g?new THREE.Vector3(core.position.x,core.position.y,core.position.z):new THREE.Vector3(cls==='buzyu'?.55:core.position.x,cls==='buzyu'?1.72:core.position.y,cls==='buzyu'?.12:core.position.z);
  var hl2=new THREE.Sprite(new THREE.SpriteMaterial({map:FLAME,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:.7,color:cd.orb}));hl2.position.copy(hp);hl2.scale.setScalar(.5);
